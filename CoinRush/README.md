@@ -223,8 +223,22 @@ i5-14600KF / Windows 11 / 1280×720 / 开发构建（`-game`），测量方式�
 ## 打包（已实测通过）
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File Tools\Package.ps1
+powershell -ExecutionPolicy Bypass -File Tools\Package.ps1               # Development
+powershell -ExecutionPolicy Bypass -File Tools\Package.ps1 -Config Shipping
 ```
+
+两个配置都实测过：
+
+| 配置 | 产物目录 | 整包 | 可执行文件 | 调试符号 |
+| --- | --- | --- | --- | --- |
+| Development | `Saved\Package\Development\` | 约 826 MB | 317 MB（含符号的 `CoinRush.exe`） | 有 |
+| **Shipping** | `Saved\Package\Shipping\` | **319 MB** | **158 MB**（`CoinRush-Win64-Shipping.exe`） | **无** |
+
+Shipping 版的注意点：
+
+- 包里没有 `.pdb`——靠 UAT 的 `-nodebuginfo` 才能做到（见下面的坑）；
+- Shipping 关闭了 UE 日志，所以只能用“进程存活 + 窗口出现”判断是否启动成功，看日志会以为什么都没发生；
+- 想保留符号又不想进包，符号仍留在工程的 `Binaries\Win64\*.pdb` 里，可以单独归档。
 
 产物：`Saved\Package\Windows\CoinRush\Binaries\Win64\CoinRush.exe`（约 317 MB，整包约 900 MB），日志里出现 `Engine is initialized` 即启动成功。
 

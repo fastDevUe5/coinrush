@@ -164,3 +164,22 @@
   再跑一次打包版，日志应为 `SFX loaded: coin=1 land=1`。
 - **出处**：2026-11-17 实测——修复前 `coin=0 land=0`，加 `DirectoriesToAlwaysCook` 后 `coin=1 land=1`，cooked manifest 里出现
   `M_Coin/M_Character/M_Accent/SFX_Coin/SFX_Land`。
+
+## 21. `IncludeDebugFiles` 管不到命令行打包，要去掉 pdb 得用 `-nodebuginfo`
+
+- **症状**：在 `DefaultGame.ini` 写了 `[/Script/UnrealEd.ProjectPackagingSettings] IncludeDebugFiles=False`，
+  `BuildCookRun` 打出来的 Shipping 包里仍然有 211 MB 的 `.pdb`。
+- **原因**：该属性只在编辑器 **Turnkey**（平台菜单打包）里被读取（`TurnkeySupportModule.cpp:574`）；
+  UAT 的 `BuildCookRun` 用的是 `ProjectParams.NoDebugInfo`（命令行 `-nodebuginfo`），两者互不相通。
+- **正确**：给 `BuildCookRun` 加 `-nodebuginfo`。属性名也注意：是 `IncludeDebugFiles`，**没有 `b` 前缀**，写错会被静默忽略
+  （以 `ProjectPackagingSettings.h:242` 的 UPROPERTY 名为准）。
+- **验证**：Shipping 包里 `Get-ChildItem -Recurse -Filter *.pdb` 计数为 0，整包从 826 MB 降到 319 MB。
+- **出处**：2026-11-17 实测；`AutomationUtils/ProjectParams.cs:2176-2185`、`DeveloperToolSettings/.../ProjectPackagingSettings.h:242`
+
+## 22. Editor 目标没有 Shipping 配置
+
+- **症状**：`Build.bat CoinRushEditor Win64 Shipping` 直接失败（退出码 6），打包脚本第一步就挂。
+- **原因**：`CoinRushEditor` 只有 Debug/DebugGame/Development 等配置；Shipping 只对**游戏**目标有意义。
+- **正确**：打 Shipping 包时，编辑器目标仍然编译 Development（cooker 只需要一个能跑的编辑器），游戏目标才用 Shipping。
+  `Tools/Package.ps1` 已经按这个规则写死。
+- **出处**：2026-11-17 实测；`Source/CoinRushEditor.Target.cs`

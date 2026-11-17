@@ -14,6 +14,12 @@
 
 ## 1. 硬约束（违反会浪费时间或弄坏工程）
 
+0. **先查官方文档，再动手**。遇到“某个设置在哪、某个功能怎么开、某个报错怎么解”时，按下面的顺序找答案：
+   1. `dev.epicgames.com/documentation` 的 **5.8 版本页**（页面默认展示最新版 5.9，先切版本选择器）；
+   2. 本机 `Engine/Source`（文档没写或与版本不符时，以源码为准，行号记进 Gotchas）；
+   3. 本工程实测（跑一次、看日志、截一次图）。
+   常见入口：[打包项目](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-unreal-engine-projects)、[编译配置参考](https://dev.epicgames.com/documentation/en-us/unreal-engine/build-configurations-reference-for-unreal-engine)、[Unreal MCP](https://dev.epicgames.com/documentation/unreal-engine/unreal-mcp-in-unreal-editor?lang=zh-CN)。
+
 1. **不要双击 `.uproject`**——引擎没登记，会提示找不到引擎。用 `Open_Editor.bat` / `Run_Game.bat`。
 2. **编译前确认编辑器已关闭**。编辑器开着 Live Coding 时会持有 `UnrealEditor.exe` 互斥体，UBT 会拒绝构建
    （`Unable to build while Live Coding is active`）。所有脚本已带 `-NoHotReloadFromIDE`，但**打包必须走 `Tools\Package.ps1`**，
