@@ -126,6 +126,34 @@ CoinRush/
   客户端不会自动重握手；把 bundle 禁用再启用（或重启 DSH 会话）即可恢复。
 - **安全**：只监听 `127.0.0.1`，但它等于把"任意编辑器操作 + 脚本执行"交给代理，别改到公网监听。
 
+## 版本控制与 VS Code
+
+仓库根在 `C:\Users\tk\Desktop\UE5`（同时收进 `CoinRush` 和 `dsh-bundles`），已配置 **Git LFS**：
+
+- `.gitattributes` 把 `.uasset/.umap/.ubulk/.uexp/.pak/.png/.wav/.fbx...` 全部交给 LFS，二进制资产不会撑爆仓库。
+- `.gitignore`（根 + `CoinRush/`）忽略 `Binaries/ Intermediate/ Saved/ DerivedDataCache/ .vs/` 和 UBT 生成的 `compileCommands_*.json`。
+- 首次提交：`ea7b957 Initial import: CoinRush UE5 project, MCP bridge bundle, tooling and docs`。
+- 提交身份暂时是本机占位（`tk <tk@localhost>`），要改成自己的：
+  ```
+  git config user.name "你的名字"
+  git config user.email "you@example.com"
+  git commit --amend --reset-author --no-edit
+  ```
+
+**VS Code**：用 VS Code 打开 `CoinRush` 目录（不是仓库根），`.vscode/` 已经配好：
+
+| 任务（Ctrl+Shift+B 里的默认项） | 作用 |
+| --- | --- |
+| `UE: 编译 + 重生成关卡` | 调用 `Tools/BuildAll.ps1`，等价于 `Rebuild_All.bat` |
+| `UE: 重生成关卡` | 只跑 Python 生成器 |
+| `UE: 运行游戏` / `UE: 打开编辑器` | 两个 bat |
+| `UE: 启动并截图` | 启动、等 30 秒、截图、关闭 |
+| `UE: 刷新 VS Code IntelliSense` | 重新生成 `compileCommands_*.json`（新增/删除源文件后跑一次） |
+
+- C++ IntelliSense 走 UBT 生成的 `compileCommands_CoinRush.json`，头文件路径和编译宏都由引擎给出，不用手工配 include。
+- 调试：`launch.json` 里可以选择 `启动游戏 (-game)` 或在编辑器运行时 `附加到 UnrealEditor`。
+- 扩展建议在 `.vscode/extensions.json`（C/C++、Python、PowerShell）。
+
 ## 常见问题
 
 **Q：双击 `.uproject` 提示 "找不到引擎"？**
@@ -139,3 +167,9 @@ CoinRush/
 
 **Q：画面偏暗/偏亮？**
 调 `Tools/build_level.py` 里 `build_lighting()` 的太阳强度（当前 12）与 `auto_exposure_bias`（当前 -1.4），然后跑 `Rebuild_All.bat` 重生成关卡。
+
+**Q：换了机器 / 新克隆后 VS Code 里 C++ 报一堆红？**
+跑一次任务 `UE: 刷新 VS Code IntelliSense`（或手工执行 UBT 的 `-projectfiles -VSCode`），生成 `.vscode/compileCommands_CoinRush.json` 即可。
+
+**Q：仓库里怎么没有 `Binaries/`、`Saved/`？**
+被 `.gitignore` 排除了。二进制产物每次本地编译生成；`Saved/Config` 里的 MCP 自动启动设置也因此不进仓库，但 `Open_Editor.bat` 已带 `-ModelContextProtocolStartServer`，所以换机器也能用。

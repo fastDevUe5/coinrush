@@ -1,0 +1,26 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "附加到 UnrealEditor",
+			"type": "cppvsdbg",
+			"request": "attach",
+			"processId": "${command:pickProcess}"
+		},
+		{
+			"name": "启动游戏 (-game)",
+			"type": "cppvsdbg",
+			"request": "launch",
+			"program": "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+			"args": [
+				"${workspaceFolder}\\CoinRush.uproject",
+				"-game",
+				"-windowed",
+				"-resx=1280",
+				"-resy=720"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole"
+		}
+	]
+}

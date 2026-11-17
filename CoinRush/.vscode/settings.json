@@ -1,0 +1,23 @@
+{
+	"files.associations": {
+		"*.uproject": "json",
+		"*.uplugin": "json"
+	},
+	"search.exclude": {
+		"**/Intermediate": true,
+		"**/Binaries": true,
+		"**/Saved": true,
+		"**/DerivedDataCache": true,
+		"**/.vs": true
+	},
+	"files.watcherExclude": {
+		"**/Intermediate/**": true,
+		"**/Binaries/**": true,
+		"**/Saved/**": true,
+		"**/DerivedDataCache/**": true
+	},
+	"files.eol": "\n",
+	"terminal.integrated.defaultProfile.windows": "PowerShell",
+	"git.autofetch": true,
+	"git.confirmSync": false
+}

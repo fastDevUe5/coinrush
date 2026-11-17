@@ -1,0 +1,81 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "UE: 编译 + 重生成关卡",
+			"detail": "Tools/BuildAll.ps1 — UBT 编译 Editor 目标，然后跑 Python 生成关卡",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"${workspaceFolder}\\Tools\\BuildAll.ps1"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "UE: 重生成关卡",
+			"detail": "只跑 Python 生成器，不编译 C++",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"${workspaceFolder}\\Tools\\BuildLevel.ps1"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "UE: 运行游戏",
+			"detail": "独立游戏窗口（1280x720）",
+			"type": "shell",
+			"command": "${workspaceFolder}\\Run_Game.bat",
+			"problemMatcher": []
+		},
+		{
+			"label": "UE: 打开编辑器",
+			"detail": "带 MCP 服务启动 Unreal Editor",
+			"type": "shell",
+			"command": "${workspaceFolder}\\Open_Editor.bat",
+			"problemMatcher": []
+		},
+		{
+			"label": "UE: 启动并截图",
+			"detail": "Tools/RunGame.ps1 — 启动游戏、等 30 秒、截图、关闭",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"${workspaceFolder}\\Tools\\RunGame.ps1",
+				"-Seconds",
+				"30"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "UE: 刷新 VS Code IntelliSense",
+			"detail": "重新生成 .vscode/compileCommands_*.json（新增/删除源文件后跑一次）",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"& 'C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\ThirdParty\\DotNet\\10.0\\win-x64\\dotnet.exe' 'C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.dll' -projectfiles -project='${workspaceFolder}\\CoinRush.uproject' -game -VSCode"
+			],
+			"problemMatcher": []
+		}
+	]
+}

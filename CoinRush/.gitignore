@@ -7,3 +7,6 @@ DerivedDataCache/
 *.opensdf
 *.sdf
 .vs/
+
+# UBT 生成的 IntelliSense 数据库（含绝对路径，重新生成即可）
+.vscode/compileCommands_*.json
