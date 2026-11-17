@@ -129,3 +129,15 @@
 - **原因**：这些是编辑器插件的 Python 初始化脚本，在 `-game` 模式下运行时缺少编辑器 Python 绑定；属于噪音。
 - **处理**：忽略即可，不影响游戏；如果嫌吵，可以在打包版里不启用这些插件（编辑器专用，不进包）。
 - **出处**：`Saved\Logs\CoinRush.log` 启动段，2026-11-17 实测
+
+## 18. `[SystemSettings]` 里的 `t.MaxFPS` 在工程 DefaultEngine.ini 不生效
+
+- **症状**：在 `Config/DefaultEngine.ini` 写了
+  ```
+  [SystemSettings]
+  t.MaxFPS=120
+  ```
+  启动后 `stat unit` 仍是 `Frame: 2.02 ms`（约 485fps，完全没被限制）；而同一文件 `[/Script/Engine.Engine] bSmoothFrameRate=False` 是生效的。
+- **对照**：命令行 `-ExecCmds="t.MaxFPS 120, stat unit"` 立刻变成 `Frame: 8.33 ms`，说明 cvar 本身没问题。
+- **做法**：帧率上限写到代码里（`ACRGameMode::StartPlay` 用 `IConsoleManager` 设），或用命令行；不要指望工程 ini 的 `[SystemSettings]`。
+- **出处**：`Config/DefaultEngine.ini`、`Source/CoinRush/CRGameMode.cpp`、2026-11-17 三次对比实测

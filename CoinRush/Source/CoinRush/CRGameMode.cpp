@@ -4,6 +4,7 @@
 #include "CRCoin.h"
 #include "CRHUD.h"
 #include "Engine/World.h"
+#include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
@@ -40,6 +41,16 @@ ACRGameMode::ACRGameMode()
 void ACRGameMode::StartPlay()
 {
 	Super::StartPlay();
+
+	// 引擎默认平滑帧率把上限压到 62fps；这里提到 120（用户可用 -ExecCmds 覆盖）。
+	// 放在代码里而不是 DefaultEngine.ini，是因为 [SystemSettings] 的 t.MaxFPS 实测不生效。
+	if (IConsoleVariable* MaxFPS = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS")))
+	{
+		if (MaxFPS->GetFloat() <= 0.f)
+		{
+			MaxFPS->Set(120.f);
+		}
+	}
 
 	Round.Reset(RoundSeconds);
 

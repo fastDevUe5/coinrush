@@ -185,6 +185,24 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 验证方式：`RunGame.ps1 -Sequence "E:0.8|W:0.75" -SettleMs 60`，日志出现
 `Collect burst spawned` 且紧接 `Coin 1/8`，截图可见角色周围的发光碎片。
 
+## 性能基线（2026-11-17 实测）
+
+i5-14600KF / Windows 11 / 1280×720 / 开发构建（`-game`），测量方式：`RunGame.ps1 -ExecCmds "stat unit"` 截图读数。
+
+| 配置 | Frame | Game | Draw | RHIT | Draws | Prims |
+| --- | --- | --- | --- | --- | --- | --- |
+| 引擎默认平滑（62fps 上限） | 16.13 ms | 1.53 | 1.94 | 1.38 | 82 | 36.2K |
+| 关平滑、无上限 | 2.02 ms | 1.60 | 2.02 | 1.07 | 78 | 36.2K |
+| **关平滑 + 120fps 上限（当前）** | **8.33 ms** | **1.57** | **1.85** | **1.28** | **78** | **36.2K** |
+
+结论：
+
+- 距离真实瓶颈很远——Game / Draw / RHI 都在 2ms 以内，帧时间完全由**帧率上限**决定，不是性能问题。
+- 引擎默认的 `bSmoothFrameRate` 会把上限压到 62fps（16.13ms），在高刷屏上体感发涩；已关闭，并把上限设为 120fps（`CRGameMode::StartPlay`）。
+- 等资产量、灯光、特效上来后才需要真正优化，顺序参考：Draw call → 材质复杂度 → 阴影 → 后处理。
+
+![性能基线](Docs/screenshot_perf_baseline.png)
+
 ## 打包（已实测通过）
 
 ```powershell
