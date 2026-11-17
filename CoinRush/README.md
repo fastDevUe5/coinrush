@@ -202,6 +202,32 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 调音色：改 `GenerateAudio.ps1` 里的频率与衰减系数，然后跑 `BuildAll.ps1`。
 验证：日志出现 `SFX loaded: coin=1 land=1`，拾取时紧跟 `SFX coin`。
 
+## 发布包（已生成）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools\MakeRelease.ps1 -Version v0.1.0
+```
+
+产物：`Saved\Release\CoinRush-v0.1.0-win64.zip`（**203 MB**，解压后 319 MB），内含：
+
+```
+Binaries\Win64\CoinRush-Win64-Shipping.exe   (158 MB, 含 CRT 与第三方 DLL)
+Binaries\Win64\*.dll                        (VC++ 运行时 + tbb)
+Content\Paks\*.pak / .ucas / .utoc          (cooked 内容)
+Content\Splash\Splash.bmp
+README.txt                                  (操作说明 + 依赖说明)
+```
+
+脚本会剔除 `Saved/`、`.pdb`、`d3d12SDKLayers.dll`，并在包内写一份英文 `README.txt`（操作、依赖、构建信息）。
+
+**验证状态（诚实说明）**：
+
+- zip 内文件与 `Saved\Package\Shipping\` 下的文件**逐字节一致**（SHA256 相同、文件数 22 对 22）；
+- 原始目录 `Saved\Package\Shipping\Windows\CoinRush\` 里的 exe **实跑通过**（进程存活、窗口出现）；
+- 但我把同一份文件**复制到别的路径**（或改名）后运行，会立即以退出码 1 结束、且不产生日志。
+  这台机器上没查到崩溃事件、没有 MoTW 标记、Defender 也没报毒。**原因未定**（怀疑与启动方式或安全软件对“新复制的大体积 exe”的处理有关）。
+  所以 zip 的“解压即可运行”还需要你手动双击确认一次——如果解压后双击也失败，我们再一起查。
+
 ## 品牌资源（图标 / 启动画面，已实测）
 
 两个资源都是脚本画的，没有外部素材：
