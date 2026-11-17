@@ -141,3 +141,9 @@
 - **对照**：命令行 `-ExecCmds="t.MaxFPS 120, stat unit"` 立刻变成 `Frame: 8.33 ms`，说明 cvar 本身没问题。
 - **做法**：帧率上限写到代码里（`ACRGameMode::StartPlay` 用 `IConsoleManager` 设），或用命令行；不要指望工程 ini 的 `[SystemSettings]`。
 - **出处**：`Config/DefaultEngine.ini`、`Source/CoinRush/CRGameMode.cpp`、2026-11-17 三次对比实测
+
+## 19. 运行时合成音频在 5.8 上不可靠，改用“生成 WAV + 导入”
+
+- **症状**：想用 `USoundWaveProcedural` + `QueueAudio` 做零资产音效，但 5.8 里 `USoundWave` 的 `Duration`、`NumChannels`、`SampleRate` 已经私有化/改名，`GetDuration()` 是虚函数，一次性音效的时长语义不确定——不播、或播完不收尾都可能，且本地无法用耳朵验证。
+- **正确**：用脚本生成标准 16-bit PCM WAV（`Tools/GenerateAudio.ps1`），再用 `AssetImportTask` 导入成真正的 `USoundWave` 资产（`Tools/import_audio.py`），C++ 里 `LoadObject` + `PlaySoundAtLocation`。这条路只用到稳定 API，音色可听、可调、可版本控制。
+- **出处**：本工程 2026-11-17 实测；`Content/Audio/SFX_Coin.uasset`、`SFX_Land.uasset`

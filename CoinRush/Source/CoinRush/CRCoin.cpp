@@ -105,5 +105,6 @@ void ACRCoin::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	if (ACRGameMode* GameMode = Cast<ACRGameMode>(UGameplayStatics::GetGameMode(this)))
 	{
 		GameMode->AddCoin();
+		GameMode->PlayCoinSfx(GetActorLocation());
 	}
 }

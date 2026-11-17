@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "TimerManager.h"
 
 namespace
@@ -53,6 +54,11 @@ void ACRGameMode::StartPlay()
 	}
 
 	Round.Reset(RoundSeconds);
+
+	CoinSfx = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX_Coin.SFX_Coin"));
+	LandSfx = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX_Land.SFX_Land"));
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] SFX loaded: coin=%d land=%d"),
+		CoinSfx != nullptr ? 1 : 0, LandSfx != nullptr ? 1 : 0);
 
 	SpawnCoins();
 
@@ -130,4 +136,26 @@ void ACRGameMode::FinishRound(bool bInWin)
 void ACRGameMode::RestartRound()
 {
 	UGameplayStatics::OpenLevel(this, FName(*UGameplayStatics::GetCurrentLevelName(this, true)));
+}
+
+void ACRGameMode::PlayCoinSfx(const FVector& Location)
+{
+	if (!CoinSfx)
+	{
+		return;
+	}
+
+	// Slight random pitch so repeated pickups do not sound robotic.
+	UGameplayStatics::PlaySoundAtLocation(this, CoinSfx, Location, 0.7f, FMath::FRandRange(0.95f, 1.06f));
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] SFX coin"));
+}
+
+void ACRGameMode::PlayLandSfx()
+{
+	if (!LandSfx)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySound2D(this, LandSfx, 0.55f, FMath::FRandRange(0.92f, 1.08f));
 }

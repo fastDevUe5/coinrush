@@ -143,6 +143,11 @@ void ACRCharacter::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 
 	LandShakeTime = LandShakeDuration;
+
+	if (ACRGameMode* GameMode = Cast<ACRGameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		GameMode->PlayLandSfx();
+	}
 }
 
 void ACRCharacter::UpdateLandShake(float DeltaSeconds)

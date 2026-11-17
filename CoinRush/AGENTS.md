@@ -53,6 +53,9 @@ powershell -ExecutionPolicy Bypass -File Tools\CheckAssets.ps1
 # 跑自动化测试（纯逻辑，约 30 秒，改到回合逻辑必跑）
 powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 
+# 重新合成并导入音效（改 Tools\GenerateAudio.ps1 后跑；BuildAll 也会跑）
+powershell -ExecutionPolicy Bypass -File Tools\GenerateAudio.ps1
+
 # 打印关卡里所有 actor（确认生成结果）
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
   "CoinRush.uproject" -run=pythonscript -script="Tools\inspect_level.py" -unattended -nosplash -nop4 -stdout

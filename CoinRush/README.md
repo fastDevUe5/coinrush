@@ -185,6 +185,20 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 验证方式：`RunGame.ps1 -Sequence "E:0.8|W:0.75" -SettleMs 60`，日志出现
 `Collect burst spawned` 且紧接 `Coin 1/8`，截图可见角色周围的发光碎片。
 
+## 音效（程序生成，已接入）
+
+没有任何外部素材——两个音效都是脚本合成的 16-bit PCM WAV：
+
+| 环节 | 文件 |
+| --- | --- |
+| 合成 | `Tools/GenerateAudio.ps1`（金币：1568/2093/3136Hz 三个分音指数衰减；落地：72Hz 正弦 + 噪声） |
+| 源文件 | `Tools/AudioSrc/SFX_Coin.wav`、`SFX_Land.wav` |
+| 导入 | `Tools/import_audio.py` → `/Game/Audio/SFX_Coin`、`SFX_Land`（`BuildAll.ps1` 第 2 步自动跑） |
+| 播放 | `ACRGameMode::PlayCoinSfx`（空间音源 + 随机音高 0.95~1.06）、`PlayLandSfx`（2D） |
+
+调音色：改 `GenerateAudio.ps1` 里的频率与衰减系数，然后跑 `BuildAll.ps1`。
+验证：日志出现 `SFX loaded: coin=1 land=1`，拾取时紧跟 `SFX coin`。
+
 ## 性能基线（2026-11-17 实测）
 
 i5-14600KF / Windows 11 / 1280×720 / 开发构建（`-game`），测量方式：`RunGame.ps1 -ExecCmds "stat unit"` 截图读数。
