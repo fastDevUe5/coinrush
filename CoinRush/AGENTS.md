@@ -87,6 +87,9 @@ powershell -ExecutionPolicy Bypass -File Tools\DecodeMcpCapture.ps1 -SpillPath <
 全部记录在 [`Docs/UE5-Gotchas.md`](Docs/UE5-Gotchas.md)：API 记错、属性名变更、编码陷阱、打包互斥、MCP 会话、截图挂起等。
 **遇到新坑请追加到那里，并写明出处（源码文件/日志/退出码）**——这份清单是本工程最值钱的资产。
 
+系统性的知识（机制、取舍、可复制片段）放在 [`Docs/UE5-Knowledge/`](Docs/UE5-Knowledge/README.md)，
+按“引擎机制 / 编辑器自动化 / 构建发布 / 渲染性能”四类组织；**结论必须标引擎版本与出处**，冲突时以源码和实测为准。
+
 ## 6. 不要做的事
 
 - 不要为了"更省事"改 `Config/DefaultEngine.ini` 里的 `r.DynamicGlobalIlluminationMethod=0` / `r.Shadow.Virtual.Enable=0` 而不测启动时间；
