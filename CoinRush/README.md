@@ -169,6 +169,15 @@ powershell -ExecutionPolicy Bypass -File Tools\Package.ps1
 
 顺带验证过：MCP 插件虽然是 `NoRedist`，但它是 EditorOnly，不参与 staging，**不会阻断打包**。
 
+## 给 AI agent 的约定
+
+换任何客户端（Claude Code / Cursor / Codex / DSH）都先读这两份：
+
+- [`AGENTS.md`](AGENTS.md)：环境事实、硬约束（Live Coding 互斥、MCP 重连、PS 脚本纯 ASCII、LFS）、命令清单、代码地图、完成定义。
+- [`Docs/UE5-Gotchas.md`](Docs/UE5-Gotchas.md)：15 条实测踩坑记录，每条都带出处（源码路径 / 日志 / 退出码）。
+
+原则：**规则进脚本，结论进文档，每次改完跑一遍检查**。新踩的坑追加到 Gotchas，并写明出处。
+
 ## 常见问题
 
 **Q：双击 `.uproject` 提示 "找不到引擎"？**

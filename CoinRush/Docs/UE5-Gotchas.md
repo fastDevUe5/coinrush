@@ -1,0 +1,114 @@
+# UE5 / CoinRush 踩坑清单
+
+每条都来自本机实测，写明**症状 → 原因 → 正确做法 → 出处**。新增条目请保持同样格式，出处写源码路径、日志片段或退出码。
+
+引擎：UE 5.8.4（`C:\Program Files\Epic Games\UE_5.8`）｜工具链：VS2026 / MSVC 14.52
+
+---
+
+## 1. `GetInputMouseDelta` 不在 `UPlayerInput` 上
+
+- **症状**：`error C2039: "GetInputMouseDelta": 不是 "UPlayerInput" 的成员`
+- **原因**：该函数属于 `APlayerController`，不是输入对象。
+- **正确**：`PC->GetInputMouseDelta(dx, dy);`
+- **出处**：`Source/CoinRush/CRCharacter.cpp` 编译日志；声明在 `Engine/Source/Runtime/Engine/Classes/GameFramework/PlayerController.h`
+
+## 2. Python 不能给材质表达式输入赋值
+
+- **症状**：`MaterialExpressionMultiply: Property 'A' for attribute 'a' ... is protected and cannot be set`
+- **原因**：`FExpressionInput` 成员是 protected，`set_editor_property` 只对公开属性有效。
+- **正确**：
+  ```python
+  unreal.MaterialEditingLibrary.connect_material_expressions(base, "", multiply, "A")
+  unreal.MaterialEditingLibrary.connect_material_expressions(strength, "", multiply, "B")
+  unreal.MaterialEditingLibrary.connect_material_property(multiply, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+  ```
+  常量表达式本身仍可用 `set_editor_property("constant", unreal.LinearColor(r,g,b,1))`。
+- **出处**：`Tools/build_level.py` 的 `make_material()`；异常发生在 PythonScriptCommandlet
+
+## 3. 雾的组件属性叫 `enable_volumetric_fog`
+
+- **症状**：`ExponentialHeightFogComponent: Failed to find property 'volumetric_fog'`
+- **正确**：`set_editor_property("enable_volumetric_fog", False)`；同类还有 `fog_density`、`fog_height_falloff`。
+- **教训**：Python 属性名是 UPROPERTY 去前缀后的名字，别按 C++ 变量名猜。
+- **出处**：`Tools/build_level.py` 的 `build_lighting()`；属性声明在 `Engine/Source/Runtime/Engine/Classes/Components/ExponentialHeightFogComponent.h`
+
+## 4. 编辑器开着时 UBT 拒绝编译
+
+- **症状**：`Unable to build while Live Coding is active. Exit the editor and game...`（`Result: Failed (OtherCompilationError)`，退出码 6）
+- **原因**：UBT 检测到目标可执行文件的 Live Coding 互斥体；由 `BuildConfiguration.bAllowHotReloadFromIDE` 控制。
+- **正确**：构建命令加 `-NoHotReloadFromIDE`。**注意 `-NoHotReload` 无效**（它设的是 `HotReloadMode`，不解除该检查）。
+- **出处**：`System/HotReload.cs:270-278`、`Configuration/BuildConfiguration.cs:160`；`Tools/BuildAll.ps1` 已带该参数
+
+## 5. 打包必须先编译、再 `-skipbuild`
+
+- **症状**：`RunUAT BuildCookRun ... -build` 直接失败（退出码 6），日志停在 Live Coding 那句。
+- **原因**：`BuildCookRun` 不接收 `-NoHotReloadFromIDE`，它自己调 UBT 时又撞上同一个互斥。
+- **正确**：两步走（`Tools/Package.ps1` 已封装）
+  1. `Build.bat CoinRushEditor Win64 Development ... -NoHotReloadFromIDE`
+  2. `Build.bat CoinRush Win64 Development ... -NoHotReloadFromIDE`
+  3. `RunUAT BuildCookRun ... -skipbuild -cook -stage -pak -archive`
+- **验证**：实测成功——497 个包、整包约 900 MB、`CoinRush.exe` 317 MB，启动日志到 `Engine is initialized`。
+- **顺带结论**：MCP 插件虽标 `NoRedist`，但它是 EditorOnly，不参与 staging，不影响打包。
+
+## 6. PowerShell 5.1 会把无 BOM 的 UTF-8 当 ANSI 读
+
+- **症状**：`.ps1` 里的中文让解析器报 `The string is missing the terminator`，明明引号是成对的。
+- **原因**：PS 5.1 默认按系统代码页（GBK）读无 BOM 文件，多字节字符被截断。
+- **正确**：**所有 `.ps1` 保持纯 ASCII**（注释也写英文）。需要中文输出时用 `[System.IO.File]::ReadAllText($p, [Text.Encoding]::UTF8)` 读文件，或改用 `pwsh` 7。
+- **出处**：`Tools/CheckAssets.ps1` 第一版；`Tools/*.ps1` 现已全部 ASCII（可用脚本检查非 ASCII 字符数）
+
+## 7. `PrintWindow` 抓 DX12 窗口会挂起
+
+- **症状**：对打包版游戏窗口调用 `PrintWindow(hwnd, hdc, 2)` 长时间不返回，脚本卡死。
+- **正确**：别用它抓实时 3D 窗口；用 `Tools/RunGame.ps1` 那条路（启动游戏 → `CopyFromScreen` 抓客户区 → 关闭）。
+- **出处**：`Tools/CaptureWindow.ps1`（保留作参考，但对 DX12 不可靠）
+
+## 8. 编辑器重启后 MCP 会话失效
+
+- **症状**：`Unknown session id 'xxxx' for 'tools/call'; client should reinitialize`
+- **原因**：UE 的 MCP 服务每个编辑器进程一套会话；客户端保存的 session id 在新进程里无效，且不会自动重握手。
+- **正确**：禁用再启用 DSH 的 `@local/unreal-mcp` bundle（强制重连），或重启 agent 会话。客户端配置里的 `reconnect` 只处理传输层断连，解决不了这个。
+- **出处**：`ModelContextProtocolServer.cpp` 的会话校验；实测两次
+
+## 9. MCP 服务默认不随编辑器启动
+
+- **症状**：插件启用了，但 8000 端口不监听，日志没有 `Starting MCP server`。
+- **原因**：`UModelContextProtocolSettings::bAutoStartServer` 默认 `false`（`config=EditorPerProjectUserSettings`）。
+- **正确**：`-ModelContextProtocolStartServer` 启动，或在 `Saved/Config/WindowsEditor/EditorPerProjectUserSettings.ini` 写
+  `[/Script/ModelContextProtocolEngine.ModelContextProtocolSettings] bAutoStartServer=True`（本工程两者都做了）。
+- **出处**：`ModelContextProtocolSettings.h:42`、`ModelContextProtocolSettings.cpp:32-61`
+
+## 10. `CaptureViewport` 必须显式传 `captureTransform`
+
+- **症状**：`Function "CaptureViewport", input param "captureTransform" needs a default value.`
+- **正确**：显式传相机位姿（`location` + `rotation`），即使你刚用 `SetCameraTransform` 设过。
+- **补充**：返回的 base64 PNG 通常 300~500 KB，会被 harness 落盘；用 `Tools/DecodeMcpCapture.ps1` 解码。
+
+## 11. `new_level` 对已存在地图会失败
+
+- **症状**：`LevelEditorSubsystem: Error: NewLevel. Failed to validate the destination. An asset already exists at this location.`
+- **正确**：改成幂等重建——`load_level()` → 遍历 `get_all_level_actors()` 并 `destroy_actor()` → 重新生成 → `save_current_level()`。只有地图不存在时才 `new_level`。
+- **出处**：`Tools/build_level.py` 的 `ensure_empty_level()`
+
+## 12. 双击 `.uproject` 提示找不到引擎
+
+- **原因**：`C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat` 的 `InstallationList` 为空，引擎未登记。
+- **正确**：用 `Open_Editor.bat` / `Run_Game.bat`（直接调 `UnrealEditor.exe`），或在注册表 `HKCU\Software\Epic Games\Unreal Engine\Builds` 登记。
+
+## 13. PowerShell 的 `$PID` 是只读自动变量
+
+- **症状**：枚举窗口时 `无法覆盖变量 PID，因为该变量为只读`。
+- **正确**：用别的名字，例如 `$procId`。
+- **出处**：`Tools/RunGame.ps1` 的 C# 互操作调用
+
+## 14. VS Code IntelliSense 需要 UBT 生成的编译数据库
+
+- **症状**：新克隆的工程在 VS Code 里 C++ 全红。
+- **正确**：跑 `UnrealBuildTool -projectfiles -project=<uproject> -game -VSCode`（VS Code 任务“UE: 刷新 VS Code IntelliSense”已封装），生成 `.vscode/compileCommands_CoinRush.json`。
+- **注意**：`compileCommands_*/` 目录里的 `.rsp` 和 `*.code-workspace` 含绝对路径，已 gitignore，别提交。
+
+## 15. 单机编译器版本偏新
+
+- **症状**：编译日志告警 `Visual Studio compiler version 14.52.37029 is newer than latest preferred version 14.50.35717`。
+- **处理**：目前只影响告警，产物正常；如遇到无从解释的编译/链接错误，优先怀疑工具链版本，换 VS 2022 17.x 的 MSVC 14.38~14.44 复核。
