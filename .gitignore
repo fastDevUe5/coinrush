@@ -11,3 +11,10 @@ dsh-bundles/**/.pnpm-store/
 # 本地 token / 临时文件
 *.tmp
 *.bak
+
+# git-lfs 安装时自动写入的钩子（重新执行 git lfs install --local 会重建）
+.githooks/post-checkout
+.githooks/post-commit
+.githooks/post-merge
+.githooks/pre-push
+
