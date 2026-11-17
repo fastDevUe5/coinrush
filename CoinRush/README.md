@@ -140,7 +140,7 @@ CoinRush/
   git commit --amend --reset-author --no-edit
   ```
 
-**VS Code**：用 VS Code 打开 `CoinRush` 目录（不是仓库根），`.vscode/` 已经配好：
+**VS Code**：用 VS Code 打开 `CoinRush` **目录**（不是仓库根），`.vscode/` 已经配好：
 
 | 任务（Ctrl+Shift+B 里的默认项） | 作用 |
 | --- | --- |
@@ -153,6 +153,9 @@ CoinRush/
 - C++ IntelliSense 走 UBT 生成的 `compileCommands_CoinRush.json`，头文件路径和编译宏都由引擎给出，不用手工配 include。
 - 调试：`launch.json` 里可以选择 `启动游戏 (-game)` 或在编辑器运行时 `附加到 UnrealEditor`。
 - 扩展建议在 `.vscode/extensions.json`（C/C++、Python、PowerShell）。
+
+> UBT 还会顺手生成一个 `CoinRush.code-workspace`（含引擎目录 + 全套 Debug/Development/Shipping 构建与调试配置，里面全是绝对路径）。它以会重新生成为代价，已被 `.gitignore` 排除。
+> 想用那套完整配置就打开 `.code-workspace`；想用上面这 5 个精简任务就打开文件夹——**两者任务不会同时生效**，按需选一个。
 
 ## 常见问题
 
