@@ -202,6 +202,29 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 调音色：改 `GenerateAudio.ps1` 里的频率与衰减系数，然后跑 `BuildAll.ps1`。
 验证：日志出现 `SFX loaded: coin=1 land=1`，拾取时紧跟 `SFX coin`。
 
+## 品牌资源（图标 / 启动画面，已实测）
+
+两个资源都是脚本画的，没有外部素材：
+
+| 资源 | 路径 | 谁用它 |
+| --- | --- | --- |
+| 应用图标 | `Build\Windows\Application.ico`（256×256，32bpp） | UBT 自动读取（`UEBuildWindows.cs` 里的 `GetWindowsApplicationIcon`），嵌进 exe |
+| 游戏启动画面 | `Content\Splash\Splash.bmp`（1920×1080，24bpp） | 打包时被 stage 进 `Content\Splash\`（`WinPlatform.Automation.cs`） |
+
+重新生成：`powershell -File Tools\GenerateBranding.ps1`（改颜色/文字就改脚本里的常量）。
+
+验证图标确实进了 exe：
+
+```powershell
+[System.Drawing.Icon]::ExtractAssociatedIcon("Saved\Package\Shipping\Windows\CoinRush\Binaries\Win64\CoinRush-Win64-Shipping.exe")
+```
+
+![打包 exe 提取出的图标](Saved/Screenshots/Packaged_Exe_Icon.png)
+
+**已知限制**：exe 的 `FileVersion` / `ProductVersion` 目前显示的是引擎版本（`++UE5+Release-5.8-CL-...`），
+`DefaultGame.ini` 里的 `ProjectVersion` 只用于 UWP/启动器显示，不会写进桌面 exe 的版本资源。
+真要自定义需要额外的版本资源（`Build/Windows/Resources` 自定义 `.rc`），暂未做。
+
 ## 性能基线（2026-11-17 实测）
 
 i5-14600KF / Windows 11 / 1280×720 / 开发构建（`-game`），测量方式：`RunGame.ps1 -ExecCmds "stat unit"` 截图读数。
