@@ -232,6 +232,12 @@ powershell -ExecutionPolicy Bypass -File Tools\Package.ps1
 
 顺带验证过：MCP 插件虽然是 `NoRedist`，但它是 EditorOnly，不参与 staging，**不会阻断打包**。
 
+**打包版必须验证两件事**（踩过坑，见 Gotchas 第 20 条）：
+
+1. 运行时 `LoadObject` 的资产有没有进包——`/Game/Audio` 和 `/Game/Materials` 已写进 `DefaultGame.ini` 的 `DirectoriesToAlwaysCook`；
+   打包后跑一次，日志应出现 `SFX loaded: coin=1 land=1`。
+2. 也可以直接查 cook 清单：`%APPDATA%\Unreal Engine\AutomationTool\Logs\<Engine>\FinalCopyWin64_UFSFiles.txt` 里搜索 `M_Coin`、`SFX_Coin`。
+
 ## 给 AI agent 的约定
 
 换任何客户端（Claude Code / Cursor / Codex / DSH）都先读这两份：

@@ -1,13 +1,14 @@
 #requires -Version 5.1
-# 打包 CoinRush 为 Windows 可运行版本。
+# Packages CoinRush into a runnable Windows build.
 #
-# 为什么不用一条 BuildCookRun 搞定：
-#   Editor 的 Live Coding 会持有 UnrealEditor.exe 的互斥体，UBT 因此拒绝构建
-#   ("Unable to build while Live Coding is active")。BuildCookRun 不接受
-#   -NoHotReloadFromIDE，所以这里先自己编译（带该参数），再让 BuildCookRun
-#   -skipbuild 只做 cook/stage/pak/archive。
+# Why two steps instead of one BuildCookRun:
+#   The editor's Live Coding holds a mutex on UnrealEditor.exe, so UBT refuses to
+#   build ("Unable to build while Live Coding is active"). BuildCookRun does not
+#   accept -NoHotReloadFromIDE, so we build both targets ourselves first and let
+#   BuildCookRun -skipbuild only cook/stage/pak/archive.
 #
-# 用法： powershell -ExecutionPolicy Bypass -File Tools\Package.ps1 [-Config Development]
+# Usage:  powershell -ExecutionPolicy Bypass -File Tools\Package.ps1 [-Config Development]
+# NOTE: keep this file ASCII-only (PowerShell 5.1 reads BOM-less files as ANSI).
 
 param(
     [string]$Config = 'Development'
@@ -21,7 +22,7 @@ $Archive = Join-Path $Root 'Saved\Package'
 $LogDir = Join-Path $Root 'Saved\Logs'
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
-Write-Host "== 1/2  编译 CoinRush（Editor + Game, $Config）=="
+Write-Host "== 1/2  Building CoinRushEditor and CoinRush ($Config) =="
 & (Join-Path $UE 'Engine\Build\BatchFiles\Build.bat') CoinRushEditor Win64 $Config "-Project=$Project" -WaitMutex -NoHotReloadFromIDE |
     Tee-Object -FilePath (Join-Path $LogDir 'package_build_editor.log') | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "Editor target build failed ($LASTEXITCODE)" }
@@ -38,7 +39,7 @@ Write-Host "== 2/2  Cook / Stage / Pak / Archive =="
 if ($LASTEXITCODE -ne 0) { throw "BuildCookRun failed ($LASTEXITCODE)" }
 
 $exe = Join-Path $Archive "Windows\CoinRush\Binaries\Win64\CoinRush.exe"
-Write-Host "打包完成：$exe"
+Write-Host "Packaged: $exe"
 if (Test-Path $exe) {
-    Write-Host ("可执行文件大小：{0:N1} MB" -f ((Get-Item $exe).Length / 1MB))
+    Write-Host ("Executable size: {0:N1} MB" -f ((Get-Item $exe).Length / 1MB))
 }

@@ -147,3 +147,20 @@
 - **症状**：想用 `USoundWaveProcedural` + `QueueAudio` 做零资产音效，但 5.8 里 `USoundWave` 的 `Duration`、`NumChannels`、`SampleRate` 已经私有化/改名，`GetDuration()` 是虚函数，一次性音效的时长语义不确定——不播、或播完不收尾都可能，且本地无法用耳朵验证。
 - **正确**：用脚本生成标准 16-bit PCM WAV（`Tools/GenerateAudio.ps1`），再用 `AssetImportTask` 导入成真正的 `USoundWave` 资产（`Tools/import_audio.py`），C++ 里 `LoadObject` + `PlaySoundAtLocation`。这条路只用到稳定 API，音色可听、可调、可版本控制。
 - **出处**：本工程 2026-11-17 实测；`Content/Audio/SFX_Coin.uasset`、`SFX_Land.uasset`
+
+## 20. 运行时 `LoadObject` 的资产不会自动进包（打包后材质变灰、音效没声）
+
+- **症状**：打包版能跑，但日志出现 `[CoinRush] SFX loaded: coin=0 land=0`；同类问题表现为金币/角色材质变成默认灰。
+- **原因**：cooker 只收集**静态可见的引用**（关卡里的 Actor、CDO 上的 ConstructorHelpers/硬引用、软引用清单）。代码里
+  `LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX_Coin.SFX_Coin"))` 用的是纯字符串路径，cooker 看不见，于是这些资产根本没被打进包。
+- **正确**：在打包设置里显式声明目录，等价 ini：
+  ```
+  [/Script/UnrealEd.ProjectPackagingSettings]
+  +DirectoriesToAlwaysCook=(Path="/Game/Audio")
+  +DirectoriesToAlwaysCook=(Path="/Game/Materials")
+  ```
+  或者改用 `TSoftObjectPtr` / 资产注册表查询，让引用在 cook 时可见。
+- **验证**：打包后检查 `%APPDATA%\Unreal Engine\AutomationTool\Logs\<Engine>\FinalCopyWin64_UFSFiles.txt` 里有没有对应 `.uasset`；
+  再跑一次打包版，日志应为 `SFX loaded: coin=1 land=1`。
+- **出处**：2026-11-17 实测——修复前 `coin=0 land=0`，加 `DirectoriesToAlwaysCook` 后 `coin=1 land=1`，cooked manifest 里出现
+  `M_Coin/M_Character/M_Accent/SFX_Coin/SFX_Land`。
