@@ -1,0 +1,31 @@
+root = true
+
+# Unreal C++ 源码：引擎风格（制表符缩进、LF、文件末尾换行）
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+
+[*.{md,yml,yaml,json,code-workspace}]
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{bat,ps1}]
+end_of_line = crlf
+
+[*.ini]
+indent_style = space
+indent_size = 0
+trim_trailing_whitespace = false
+
+[*.{uasset,umap,ubulk,uexp,png,jpg,wav,fbx}]
+# 二进制资产：编辑器不应尝试格式化
+trim_trailing_whitespace = false
+insert_final_newline = false

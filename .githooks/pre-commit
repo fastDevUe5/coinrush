@@ -1,0 +1,10 @@
+#!/bin/sh
+# 提交前资产检查：LFS 归属、命名规范、中间产物误提交、单文件体积。
+# 安装方式：git config core.hooksPath .githooks
+REPO_ROOT=$(git rev-parse --show-toplevel)
+powershell -NoProfile -ExecutionPolicy Bypass -File "$REPO_ROOT/CoinRush/Tools/CheckAssets.ps1" || {
+    echo ""
+    echo "提交被资产检查拦下。修复上面的问题，或用 git commit --no-verify 临时跳过。"
+    exit 1
+}
+exit 0
