@@ -43,17 +43,17 @@
 | C. 构建与发布 | UBT 参数、Live Coding、Cook/打包、DDC、CI | 构建失败、打包失败、启动慢、准备发版 |
 | D. 渲染与性能 | Lumen/Nanite/VSM/TSR 取舍、Unreal Insights、性能预算 | 画面不对、帧率不够、要定画质档位 |
 
-## 待建清单（按本工程优先级）
+## 清单（✅ 已完成 / ⬜ 待写）
 
-| 优先级 | 主题 | 主要问题 | 预计篇幅 |
+| 优先级 | 主题 | 主要问题 | 状态 |
 | --- | --- | --- | --- |
-| P0 | Gameplay Framework 生命周期 | BeginPlay/StartPlay/PostLogin 顺序、Pawn 生成、HUD 绑定、重开关卡 | 1 篇 |
-| P0 | 编辑器 Python 的能力边界 | 哪些能建、哪些必须走 C++、5.8 的属性命名规律 | 1 篇 |
-| P0 | Unreal MCP / Toolset 实操 | tool search 模式、call_tool 套用、会话失效、视口截图 | 1 篇（已有素材） |
-| P1 | 构建与打包 | UBT 参数、Live Coding 互斥、BuildCookRun 两步法、产物结构 | 1 篇（已有素材） |
-| P1 | 渲染开关决策表 | Lumen/Nanite/VSM/TSR 各自代价、什么时候关 | 1 篇 |
-| P2 | 资产管线 | 导入设置、LOD/Nanite、材质实例、命名与 LFS | 1 篇 |
-| P2 | 性能基线 | Insights 抓取、帧预算、常见瓶颈 | 1 篇 |
+| P0 | [Gameplay Framework 生命周期](gameplay-framework-lifecycle.md) | BeginPlay/StartPlay/PostLogin 顺序、Pawn 与 HUD 何时生成 | ✅ 5.8.4 源码核对 |
+| P0 | [编辑器 Python 的能力边界](editor-python-boundaries.md) | 哪些能建、哪些必须走 C++、属性命名规律 | ✅ 本工程实测 |
+| P0 | [Unreal MCP 实操](unreal-mcp-practice.md) | tool search 模式、call_tool 套用、会话失效、视口截图 | ✅ 本工程实测 |
+| P1 | 构建与打包 | UBT 参数、Live Coding 互斥、BuildCookRun 两步法、产物结构 | ⬜（素材已有：`Docs/UE5-Gotchas.md` 4/5 条 + `Tools/Package.ps1`） |
+| P1 | 渲染开关决策表 | Lumen/Nanite/VSM/TSR 各自代价、什么时候关 | ⬜ |
+| P2 | 资产管线 | 导入设置、LOD/Nanite、材质实例、命名与 LFS | ⬜ |
+| P2 | 性能基线 | Insights 抓取、帧预算、常见瓶颈 | ⬜ |
 
 > 已有素材：`Docs/UE5-Gotchas.md`（15 条实测）+ `AGENTS.md`（工程约定）。知识库不重复它们，只做**成体系的解释与决策**。
 
