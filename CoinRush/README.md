@@ -238,6 +238,15 @@ powershell -ExecutionPolicy Bypass -File Tools\Package.ps1
    打包后跑一次，日志应出现 `SFX loaded: coin=1 land=1`。
 2. 也可以直接查 cook 清单：`%APPDATA%\Unreal Engine\AutomationTool\Logs\<Engine>\FinalCopyWin64_UFSFiles.txt` 里搜索 `M_Coin`、`SFX_Coin`。
 
+**产物是否依赖本机的 UE / VS？** 不依赖，已实测：
+
+- `dumpbin /dependents` 显示 exe 只引用系统 DLL 和包内 DLL，没有引擎路径；
+- 启动打包版后检查进程模块：**128 个已加载 DLL 中，0 个来自 UE 安装目录或 VS 安装目录**；
+- `VCRUNTIME140.dll` / `VCRUNTIME140_1.dll` / `MSVCP140.dll` 是从包内 `Binaries\Win64` 加载的（`Package.ps1` 会把 VC++ 运行时一起拷进去；
+  UE 开发构建用动态 CRT，不捆的话干净机器会报“找不到 VCRUNTIME140.dll”）；
+- 环境要求只剩：Windows 10/11 x64 + 支持 D3D12 的显卡驱动。
+- 包里的 `CoinRush.pdb`（350 MB）是调试符号，对外发布时可以删掉。
+
 ## 给 AI agent 的约定
 
 换任何客户端（Claude Code / Cursor / Codex / DSH）都先读这两份：

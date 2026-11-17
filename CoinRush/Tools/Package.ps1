@@ -43,3 +43,22 @@ Write-Host "Packaged: $exe"
 if (Test-Path $exe) {
     Write-Host ("Executable size: {0:N1} MB" -f ((Get-Item $exe).Length / 1MB))
 }
+
+# --- Bundle the MSVC runtime ----------------------------------------------------
+# Unreal Development builds link the dynamic CRT (/MD), so a machine without the
+# VC++ Redistributable fails with "VCRUNTIME140.dll was not found". Copying the
+# redist DLLs next to the exe makes the package self-contained (Windows resolves
+# DLLs from the application directory first).
+$exeDir = Split-Path -Parent $exe
+$crtDirs = Get-ChildItem 'C:\Program Files\Microsoft Visual Studio' -Recurse -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -match '\\x64\\' -and $_.FullName -notmatch 'onecore' -and $_.FullName -notmatch 'debug_nonredist' }
+if ($crtDirs) {
+    $crt = $crtDirs | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    Get-ChildItem $crt.FullName -Filter '*.dll' | ForEach-Object {
+        Copy-Item $_.FullName -Destination $exeDir -Force
+    }
+    Write-Host ("Bundled MSVC runtime from: {0}" -f $crt.FullName)
+}
+else {
+    Write-Host "WARNING: VC++ Redistributable not found; the package needs it installed on the target machine." -ForegroundColor Yellow
+}
