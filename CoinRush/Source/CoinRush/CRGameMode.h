@@ -51,6 +51,12 @@ public:
 	float GetTimeLeft() const { return Round.TimeLeft; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	int32 GetStreak() const { return Round.Streak; }
+
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	int32 GetBestStreak() const { return Round.BestStreak; }
+
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	float GetRoundSeconds() const { return RoundSeconds; }
 
 protected:

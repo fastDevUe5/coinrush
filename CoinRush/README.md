@@ -33,6 +33,8 @@
 ## 玩法规则
 
 - 8 枚金币分布在地面、中央高台和两侧平台上，75 秒倒计时。
+- **连击**：两次拾取间隔 ≤ 4 秒算连击，第 2 枚起每枚 **+1.5 秒**；HUD 显示 `STREAK x3 +1.5s`，结算页显示本局最佳连击。
+  金币间距约 11 米（走路 2.4s / 冲刺 1.3s），所以连击需要提前规划路线而不是乱跑。
 - 拾取全部金币 → 胜利画面 `ALL COINS COLLECTED!`
 - 时间归零 → `TIME UP!`，显示本局收集数。
 - 结束后按 Enter 立即再来一局。
@@ -180,6 +182,7 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 | 拾取粒子 | 8 个小型发光球向外飞散 + 落地重力 + 一盏会衰减的点光 | `CRCoinBurst` 的 `NumShards` / `LifeSeconds` |
 | 落地震屏 | 落地时相机下沉 + 轻微俯仰，0.22s 指数衰减 | `ACRCharacter::Landed` / `LandShakeDuration` |
 | 计分跳动 | 金币计数变化时字号放大 1.55 倍并 0.35s 回弹 | `CRHUD.cpp` 的 `ScorePulse` |
+| 连击提示 | 连击 ≥2 时显示 `STREAK xN +1.5s`，颜色随拾取脉冲由白转金 | `CRHUD.cpp` 的连击块 |
 | 冲刺 FOV | 按住 Shift 时 FOV 从 88 拉到 99 | `CRCharacter.h` 的 `SprintFieldOfView` |
 
 验证方式：`RunGame.ps1 -Sequence "E:0.8|W:0.75" -SettleMs 60`，日志出现

@@ -96,8 +96,9 @@ void ACRGameMode::AddCoin()
 		return;
 	}
 
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 	const int32 PreviousScore = Round.Score;
-	const bool bCompleted = Round.AddCoin();
+	const bool bCompleted = Round.AddCoin(Now);
 
 	if (Round.Score == PreviousScore)
 	{
@@ -105,6 +106,12 @@ void ACRGameMode::AddCoin()
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Coin %d/%d"), Round.Score, Round.TotalCoins);
+
+	if (Round.Streak >= 2)
+	{
+		// 连击奖励时间，给玩家"继续跑"的正反馈。
+		UE_LOG(LogTemp, Log, TEXT("[CoinRush] Streak x%d (+%.1fs)"), Round.Streak, FCRRoundModel::StreakTimeBonus);
+	}
 
 	if (bCompleted)
 	{

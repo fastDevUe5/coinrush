@@ -86,7 +86,7 @@ powershell -ExecutionPolicy Bypass -File Tools\DecodeMcpCapture.ps1 -SpillPath <
 3. `Run_Game.bat` 或 `RunGame.ps1` 能启动并截到非黑画面；
 4. 涉及玩法的改动，用 `-Sequence` 模拟按键验证一次（例：走到金币旁应看到 `COINS 1 / 8`）；
 5. `CheckAssets.ps1` 通过（提交时自动跑）；
-6. **改到回合逻辑（计分/计时/胜负）必须跑 `RunTests.ps1` 且 3 个测试全绿**；
+6. **改到回合逻辑（计分/计时/胜负/连击）必须跑 `RunTests.ps1` 且 4 个测试全绿**；
 7. 提交信息说清“改了什么 + 验证了什么”。
 
 ## 5. 已知坑

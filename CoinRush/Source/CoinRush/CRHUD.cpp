@@ -67,6 +67,15 @@ void ACRHUD::DrawHUD()
 
 	DrawLabel(CoinText, 42.f * UIScale, 22.f * UIScale, LargeFont, Gold, ScoreScale * UIScale);
 
+	// 连击：只在 >=2 时显示，提示"继续快跑能换时间"。
+	if (GameMode->GetStreak() >= 2)
+	{
+		const FString StreakText = FString::Printf(TEXT("STREAK  x%d    +%.1fs"), GameMode->GetStreak(), FCRRoundModel::StreakTimeBonus);
+		const float StreakAlpha = FMath::Clamp(ScorePulse * 1.2f, 0.f, 1.f);
+		const FLinearColor StreakColor = FLinearColor::LerpUsingHSV(Paper, Gold, StreakAlpha);
+		DrawLabel(StreakText, 42.f * UIScale, 62.f * UIScale, SmallFont, StreakColor, 1.0f * UIScale);
+	}
+
 	const int32 WholeSeconds = FMath::CeilToInt(GameMode->GetTimeLeft());
 	const FString TimeText = FString::Printf(TEXT("%02d"), WholeSeconds);
 	const FLinearColor TimeColor = (WholeSeconds <= 10) ? Danger : Paper;
@@ -122,8 +131,9 @@ void ACRHUD::DrawHUD()
 	const FLinearColor HeadlineColor = bWin ? Gold : Danger;
 	DrawLabelCentered(Headline, ViewW * 0.5f, ViewH * 0.5f - 110.f * UIScale, LargeFont, HeadlineColor, 2.1f * UIScale);
 
-	const FString Summary = FString::Printf(TEXT("COINS   %d / %d"), GameMode->GetScore(), GameMode->GetTotalCoins());
-	DrawLabelCentered(Summary, ViewW * 0.5f, ViewH * 0.5f - 10.f * UIScale, LargeFont, Paper, 1.2f * UIScale);
+	const FString Summary = FString::Printf(TEXT("COINS   %d / %d      BEST STREAK   x%d"),
+		GameMode->GetScore(), GameMode->GetTotalCoins(), GameMode->GetBestStreak());
+	DrawLabelCentered(Summary, ViewW * 0.5f, ViewH * 0.5f - 10.f * UIScale, LargeFont, Paper, 1.1f * UIScale);
 
 	DrawLabelCentered(TEXT("PRESS ENTER TO PLAY AGAIN     ESC TO QUIT"), ViewW * 0.5f, ViewH * 0.5f + 90.f * UIScale, SmallFont,
 		FLinearColor(0.7f, 0.76f, 0.85f, 1.f), 1.0f * UIScale);
