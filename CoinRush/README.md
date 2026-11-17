@@ -157,6 +157,18 @@ CoinRush/
 > UBT 还会顺手生成一个 `CoinRush.code-workspace`（含引擎目录 + 全套 Debug/Development/Shipping 构建与调试配置，里面全是绝对路径）。它以会重新生成为代价，已被 `.gitignore` 排除。
 > 想用那套完整配置就打开 `.code-workspace`；想用上面这 5 个精简任务就打开文件夹——**两者任务不会同时生效**，按需选一个。
 
+## 打包（已实测通过）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools\Package.ps1
+```
+
+产物：`Saved\Package\Windows\CoinRush\Binaries\Win64\CoinRush.exe`（约 317 MB，整包约 900 MB），日志里出现 `Engine is initialized` 即启动成功。
+
+**为什么脚本要拆成两步**：编辑器开着 Live Coding 时，它会持有 `UnrealEditor.exe` 的互斥体，UBT 直接拒绝构建（`Unable to build while Live Coding is active`），而 `BuildCookRun` 不接受 `-NoHotReloadFromIDE`。所以脚本先用带该参数的 `Build.bat` 编译 Editor + Game 两个目标，再让 `BuildCookRun -skipbuild` 只做 cook/stage/pak/archive。
+
+顺带验证过：MCP 插件虽然是 `NoRedist`，但它是 EditorOnly，不参与 staging，**不会阻断打包**。
+
 ## 常见问题
 
 **Q：双击 `.uproject` 提示 "找不到引擎"？**
