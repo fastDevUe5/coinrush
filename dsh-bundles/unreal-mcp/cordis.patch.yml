@@ -1,0 +1,8 @@
+- insert:
+    - id: unreal-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: unreal
+        transport: streamable-http
+        url: http://127.0.0.1:8000/mcp
+        failOnStartupError: true

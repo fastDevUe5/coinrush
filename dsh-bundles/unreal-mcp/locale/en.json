@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Unreal Engine MCP",
+    "description": "Connects the Unreal Editor's built-in MCP server so the agent can inspect and drive the open editor session.",
+    "detail": "docs/DETAIL.md"
+  }
+}

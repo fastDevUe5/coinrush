@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Unreal Engine MCP 连接",
+    "description": "连接虚幻编辑器内置的 MCP 服务（127.0.0.1:8000），让代理可以直接查看并操作当前打开的编辑器会话。",
+    "detail": "docs/DETAIL.md"
+  }
+}

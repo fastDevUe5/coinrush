@@ -1,0 +1,13 @@
+# OS / 编辑器杂项
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log
+
+# DSH 本地 bundle 的依赖（源文件仍然提交）
+dsh-bundles/**/node_modules/
+dsh-bundles/**/.pnpm-store/
+
+# 本地 token / 临时文件
+*.tmp
+*.bak
