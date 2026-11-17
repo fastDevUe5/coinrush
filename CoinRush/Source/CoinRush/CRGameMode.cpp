@@ -41,16 +41,12 @@ void ACRGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	Score = 0;
-	TotalCoins = 0;
-	TimeLeft = RoundSeconds;
-	bRoundFinished = false;
-	bWin = false;
+	Round.Reset(RoundSeconds);
 
 	SpawnCoins();
 
 	GetWorldTimerManager().SetTimer(SecondTimerHandle, this, &ACRGameMode::TickSecond, 1.f, true);
-	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round started: %d coins, %.0f seconds."), TotalCoins, RoundSeconds);
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round started: %d coins, %.0f seconds."), Round.TotalCoins, RoundSeconds);
 }
 
 void ACRGameMode::SpawnCoins()
@@ -61,6 +57,7 @@ void ACRGameMode::SpawnCoins()
 		return;
 	}
 
+	int32 SpawnedCoins = 0;
 	for (const FCoinSpot& Spot : GCoinSpots)
 	{
 		FActorSpawnParameters SpawnParams;
@@ -68,22 +65,31 @@ void ACRGameMode::SpawnCoins()
 
 		if (World->SpawnActor<ACRCoin>(ACRCoin::StaticClass(), FVector(Spot.X, Spot.Y, Spot.Z), FRotator::ZeroRotator, SpawnParams))
 		{
-			++TotalCoins;
+			++SpawnedCoins;
 		}
 	}
+
+	Round.SetTotalCoins(SpawnedCoins);
 }
 
 void ACRGameMode::AddCoin()
 {
-	if (bRoundFinished)
+	if (Round.bFinished)
 	{
 		return;
 	}
 
-	++Score;
-	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Coin %d/%d"), Score, TotalCoins);
+	const int32 PreviousScore = Round.Score;
+	const bool bCompleted = Round.AddCoin();
 
-	if (TotalCoins > 0 && Score >= TotalCoins)
+	if (Round.Score == PreviousScore)
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Coin %d/%d"), Round.Score, Round.TotalCoins);
+
+	if (bCompleted)
 	{
 		FinishRound(true);
 	}
@@ -91,14 +97,12 @@ void ACRGameMode::AddCoin()
 
 void ACRGameMode::TickSecond()
 {
-	if (bRoundFinished)
+	if (Round.bFinished)
 	{
 		return;
 	}
 
-	TimeLeft = FMath::Max(0.f, TimeLeft - 1.f);
-
-	if (TimeLeft <= 0.f)
+	if (Round.TickSecond())
 	{
 		FinishRound(false);
 	}
@@ -106,16 +110,10 @@ void ACRGameMode::TickSecond()
 
 void ACRGameMode::FinishRound(bool bInWin)
 {
-	if (bRoundFinished)
-	{
-		return;
-	}
-
-	bRoundFinished = true;
-	bWin = bInWin;
+	// 状态由 FCRRoundModel 在 AddCoin/TickSecond 里置位，这里只负责收尾。
 	GetWorldTimerManager().ClearTimer(SecondTimerHandle);
 
-	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round over. Win=%d Score=%d/%d"), bInWin ? 1 : 0, Score, TotalCoins);
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round over. Win=%d Score=%d/%d"), bInWin ? 1 : 0, Round.Score, Round.TotalCoins);
 }
 
 void ACRGameMode::RestartRound()

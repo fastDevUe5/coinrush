@@ -157,6 +157,19 @@ CoinRush/
 > UBT 还会顺手生成一个 `CoinRush.code-workspace`（含引擎目录 + 全套 Debug/Development/Shipping 构建与调试配置，里面全是绝对路径）。它以会重新生成为代价，已被 `.gitignore` 排除。
 > 想用那套完整配置就打开 `.code-workspace`；想用上面这 5 个精简任务就打开文件夹——**两者任务不会同时生效**，按需选一个。
 
+## 自动化测试（已接入）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
+```
+
+- 覆盖**回合纯逻辑**：集齐全部金币判胜、计时归零判负、结束后再拾取/再计时被忽略。
+- 逻辑被抽到 `Source/CoinRush/CRRoundModel.h`（不碰 UObject/World），所以测试不需要创建关卡，30 秒跑完。
+- 测试代码在 `Source/CoinRush/Private/Tests/CRRoundModelTests.cpp`，过滤名 `CoinRush.RoundModel`。
+- 输出：`Saved\Logs\tests.log`，每行 `Test Completed. Result={Success|Fail} Path={...}`。
+
+改到计分/计时/胜负时必须跑一遍——这是目前唯一的回归网。
+
 ## 打包（已实测通过）
 
 ```powershell

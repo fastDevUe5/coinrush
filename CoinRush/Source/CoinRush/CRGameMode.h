@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "CRRoundModel.h"
 #include "CRGameMode.generated.h"
 
 /**
@@ -27,19 +28,19 @@ public:
 	void RestartRound();
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
-	bool IsRoundFinished() const { return bRoundFinished; }
+	bool IsRoundFinished() const { return Round.bFinished; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
-	bool DidWin() const { return bWin; }
+	bool DidWin() const { return Round.bWon; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
-	int32 GetScore() const { return Score; }
+	int32 GetScore() const { return Round.Score; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
-	int32 GetTotalCoins() const { return TotalCoins; }
+	int32 GetTotalCoins() const { return Round.TotalCoins; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
-	float GetTimeLeft() const { return TimeLeft; }
+	float GetTimeLeft() const { return Round.TimeLeft; }
 
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	float GetRoundSeconds() const { return RoundSeconds; }
@@ -55,9 +56,7 @@ protected:
 
 private:
 	FTimerHandle SecondTimerHandle;
-	int32 Score = 0;
-	int32 TotalCoins = 0;
-	float TimeLeft = 0.f;
-	bool bRoundFinished = false;
-	bool bWin = false;
+
+	/** Pure state, unit tested in Private/Tests/CRRoundModelTests.cpp. */
+	FCRRoundModel Round;
 };
