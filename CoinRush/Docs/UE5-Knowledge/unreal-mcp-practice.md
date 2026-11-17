@@ -60,6 +60,23 @@ mcp__unreal__call_tool(toolset_name="editor_toolset.toolsets.scene.SceneTools",
 4. **安全边界**：只监听 `127.0.0.1`，但它等于把“任意编辑器操作 + 脚本执行”交给代理，别开放到公网。
 5. **打包不受影响**：插件虽标 `NoRedist`，但它是 EditorOnly，不参与 staging（实测打包成功）。
 
+## 官方文档（当前是 5.9 版）与本机 5.8.4 的差异（重要）
+
+Epic 的文档站默认展示**最新版本**，`unreal-mcp-in-unreal-editor` 这一页现在是 5.9 的内容。
+和本机 5.8.4 逐项比对后，有几处**实质差异**，照文档配会在 5.8 上碰壁：
+
+| 项 | 5.9 文档 | 本机 5.8.4（源码/实测） |
+| --- | --- | --- |
+| 服务器自动启动 | 默认 **开启** | **默认关闭**（`ModelContextProtocolSettings.h:42` `bAutoStartServer=false`），必须传 `-ModelContextProtocolStartServer` 或改配置 |
+| tool search 元工具 | 4 个：`list_toolsets` / `describe_toolset` / `describe_tools` / `call_tool` | **3 个**：没有 `describe_tools`（`ModelContextProtocolSettings.h:44`、`ModelContextProtocolToolsetRegistryAdapter.h:31`） |
+| 编辑器内助手面板（直接跑 Claude Code/Cursor 等） | 有（"虚幻助手面板"） | **没有**，只能外接客户端 |
+| `Origin` 允许列表（防 DNS rebinding） | 有，可配置额外来源 | 源码里**没有搜到**该实现（未逐行确认，按"可能缺失"对待，别把端口暴露给浏览器） |
+| 控制台命令 | `StartServer` / `RefreshTools` / `GenerateClientConfig` | 同样存在：`ModelContextProtocolModule.cpp:22-33`、`ModelContextProtocolEngineModule.cpp:40` |
+| 烘焙版工具（`AIRuntimeCallable`） | 支持，需打标签 | 未验证 |
+| 项目级 instructions（写进 DefaultGame.ini） | 有（Project Settings → Agentic Workflows） | 未验证 |
+
+**结论**：查官方文档时必须先确认版本选择器；对 5.8 而言，`Engine/Source` 的源码才是唯一权威。
+
 ## 工程取舍
 
 - 接法用“配置型 bundle”（`dsh-bundles/unreal-mcp/`），不改 DSH 核心，换机器只要装一次 bundle。

@@ -112,3 +112,11 @@
 
 - **症状**：编译日志告警 `Visual Studio compiler version 14.52.37029 is newer than latest preferred version 14.50.35717`。
 - **处理**：目前只影响告警，产物正常；如遇到无从解释的编译/链接错误，优先怀疑工具链版本，换 VS 2022 17.x 的 MSVC 14.38~14.44 复核。
+
+## 16. 官方文档默认展示最新版本（5.9），不是本机的 5.8
+
+- **症状**：照着 `dev.epicgames.com` 的页面配 MCP，结果 5.8 上服务不自启、工具里找不到 `describe_tools`。
+- **原因**：文档页顶部/侧栏有版本选择器，默认给最新版；5.8 与 5.9 在 MCP 上有实质差异（自动启动默认值、元工具数量、助手面板、Origin 校验）。
+- **正确**：查文档先确认版本；对 API 细节以 `Engine/Source` 为准。差异清单见
+  [`Docs/UE5-Knowledge/unreal-mcp-practice.md`](UE5-Knowledge/unreal-mcp-practice.md) 的"官方文档（当前是 5.9 版）与本机 5.8.4 的差异"。
+- **出处**：<https://dev.epicgames.com/documentation/unreal-engine/unreal-mcp-in-unreal-editor?lang=zh-CN>（页面标题为 5.9 文档）vs 本机 `ModelContextProtocolSettings.h:42-44`
