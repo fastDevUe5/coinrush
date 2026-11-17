@@ -183,3 +183,16 @@
 - **正确**：打 Shipping 包时，编辑器目标仍然编译 Development（cooker 只需要一个能跑的编辑器），游戏目标才用 Shipping。
   `Tools/Package.ps1` 已经按这个规则写死。
 - **出处**：2026-11-17 实测；`Source/CoinRushEditor.Target.cs`
+
+## 23. 只发 `CoinRush\` 子目录的包，双击 `-Win64-Shipping.exe` 会静默退出（退出码 1）
+
+- **症状**：把归档里的 `CoinRush\Binaries\Win64\CoinRush-Win64-Shipping.exe` 单独拷走（或只打包 `CoinRush\` 目录）后运行，
+  进程立刻结束、退出码 1，**不写日志、不弹窗、事件日志里只有一条无害的 `RADAR_PRE_LEAK_64`**；而在原归档目录里跑同一个 exe 却正常。
+- **原因**：`BuildCookRun -archive` 产出的根目录是 `...\Windows\`，里面有
+  `CoinRush.exe`（`BootstrapPackagedGame` 引导程序）、共享的 `Engine\`、以及 `CoinRush\` 内容目录。
+  游戏二进制按 `../../../Engine` 找引擎模块——只拷 `CoinRush\` 就找不到 `Engine\`，于是在初始化日志之前退出。
+  原始位置能跑，是因为上一层正好有 `Engine\`。
+- **正确**：发布时必须带上 `CoinRush.exe` + `Engine\` + `CoinRush\` 三者，入口用 `CoinRush.exe`。
+  `Tools/MakeRelease.ps1` 已改为从 `Saved\Package\Shipping\Windows` 整目录打包。
+- **验证**：解压到全新目录 → 运行 `CoinRush.exe` → 进程存活、窗口标题 `CoinRush`。
+- **出处**：2026-11-17 实测；`Saved\Package\Shipping\Windows\` 布局

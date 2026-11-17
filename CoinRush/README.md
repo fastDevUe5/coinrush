@@ -208,25 +208,23 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 powershell -ExecutionPolicy Bypass -File Tools\MakeRelease.ps1 -Version v0.1.0
 ```
 
-产物：`Saved\Release\CoinRush-v0.1.0-win64.zip`（**203 MB**，解压后 319 MB），内含：
+产物：`Saved\Release\CoinRush-v0.1.0-win64.zip`（**214 MB**，解压后 355 MB），解压后结构：
 
 ```
-Binaries\Win64\CoinRush-Win64-Shipping.exe   (158 MB, 含 CRT 与第三方 DLL)
-Binaries\Win64\*.dll                        (VC++ 运行时 + tbb)
-Content\Paks\*.pak / .ucas / .utoc          (cooked 内容)
-Content\Splash\Splash.bmp
-README.txt                                  (操作说明 + 依赖说明)
+CoinRush.exe                                 <- 入口（BootstrapPackagedGame，0.4 MB）
+Engine\                                      <- 共享引擎二进制（必须和 exe 同级）
+CoinRush\Binaries\Win64\...                  <- 游戏二进制 + CRT/第三方 DLL
+CoinRush\Content\Paks\*.pak / .ucas / .utoc  <- cooked 内容
+CoinRush\Content\Splash\Splash.bmp
+NOTICES.txt / Manifest_*.txt
+README.txt                                   <- 操作说明 + 依赖说明
 ```
 
-脚本会剔除 `Saved/`、`.pdb`、`d3d12SDKLayers.dll`，并在包内写一份英文 `README.txt`（操作、依赖、构建信息）。
+**必须运行 `CoinRush.exe`，不要直接双击 `CoinRush-Win64-Shipping.exe`**：后者要按 `../../../Engine` 找引擎模块，
+单独拿出来（或只拷 `CoinRush\` 子目录）会立刻以退出码 1 结束，而且不产生任何日志——这个坑踩过一次，见 Gotchas 第 23 条。
 
-**验证状态（诚实说明）**：
-
-- zip 内文件与 `Saved\Package\Shipping\` 下的文件**逐字节一致**（SHA256 相同、文件数 22 对 22）；
-- 原始目录 `Saved\Package\Shipping\Windows\CoinRush\` 里的 exe **实跑通过**（进程存活、窗口出现）；
-- 但我把同一份文件**复制到别的路径**（或改名）后运行，会立即以退出码 1 结束、且不产生日志。
-  这台机器上没查到崩溃事件、没有 MoTW 标记、Defender 也没报毒。**原因未定**（怀疑与启动方式或安全软件对“新复制的大体积 exe”的处理有关）。
-  所以 zip 的“解压即可运行”还需要你手动双击确认一次——如果解压后双击也失败，我们再一起查。
+已实测：解压到新目录 → 双击 `CoinRush.exe` → 进程存活、窗口出现。
+构建未签名，首次运行 SmartScreen 会拦一下：**更多信息 → 仍要运行**。
 
 ## 品牌资源（图标 / 启动画面，已实测）
 

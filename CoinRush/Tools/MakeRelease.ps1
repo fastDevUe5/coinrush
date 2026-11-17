@@ -1,7 +1,12 @@
 #requires -Version 5.1
-# Builds a distributable zip from the Shipping package.
+# Builds a distributable zip from the Shipping archive.
 #   Output: Saved\Release\CoinRush-<Version>-win64.zip
 # Usage:  powershell -ExecutionPolicy Bypass -File Tools\MakeRelease.ps1 [-Version v0.1.0]
+#
+# IMPORTANT: the archive root is Saved\Package\Shipping\Windows, which contains the
+# BootstrapPackagedGame launcher (CoinRush.exe), the shared Engine\ folder and the
+# CoinRush\ content folder. Shipping only the inner CoinRush\ folder produces a build
+# that exits immediately with code 1 (it resolves engine modules through ../../../Engine).
 # NOTE: keep this file ASCII-only (PowerShell 5.1 reads BOM-less files as ANSI).
 
 param(
@@ -10,33 +15,35 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
-$Package = Join-Path $Root 'Saved\Package\Shipping\Windows\CoinRush'
+$ArchiveRoot = Join-Path $Root 'Saved\Package\Shipping\Windows'
 $ReleaseRoot = Join-Path $Root 'Saved\Release'
 $Stage = Join-Path $ReleaseRoot ("CoinRush-" + $Version)
 $Zip = Join-Path $ReleaseRoot ("CoinRush-" + $Version + "-win64.zip")
 
-if (-not (Test-Path $Package)) {
-    throw "Shipping package not found: $Package  (run Tools\Package.ps1 -Config Shipping first)"
+if (-not (Test-Path (Join-Path $ArchiveRoot 'CoinRush.exe'))) {
+    throw "Shipping archive not found or incomplete: $ArchiveRoot  (run Tools\Package.ps1 -Config Shipping first)"
 }
 
 if (Test-Path $Stage) { Remove-Item $Stage -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $Stage | Out-Null
 
 Write-Host "== Staging $Version =="
-Copy-Item (Join-Path $Package '*') -Destination $Stage -Recurse -Force
+Copy-Item (Join-Path $ArchiveRoot '*') -Destination $Stage -Recurse -Force
 
-# Runtime-only: drop logs/config and any stray debug artifacts.
-foreach ($junk in @('Saved', 'CoinRush.pdb', 'CoinRush-Win64-Shipping.pdb', 'd3d12SDKLayers.dll')) {
+# Drop runtime logs/config, debug symbols and the D3D12 debug layer if present.
+foreach ($junk in @('CoinRush\Saved', 'd3d12SDKLayers.dll')) {
     $path = Join-Path $Stage $junk
     if (Test-Path $path) { Remove-Item $path -Recurse -Force }
 }
+Get-ChildItem $Stage -Recurse -File -Filter '*.pdb' -ErrorAction SilentlyContinue | Remove-Item -Force
 
 $readme = @"
 CoinRush $Version (Windows x64)
 
 HOW TO PLAY
-  Unpack the zip, run Binaries\Win64\CoinRush-Win64-Shipping.exe
-  (the CoinRush.exe launcher also works if present)
+  Double-click CoinRush.exe (the launcher in this folder).
+  Do not run Binaries\...\CoinRush-Win64-Shipping.exe directly: that binary needs
+  the Engine\ folder next to it and will exit without a message otherwise.
 
   WASD / arrow keys   move
   Mouse, Q / E        turn camera
@@ -53,12 +60,15 @@ GOAL
 
 REQUIREMENTS
   Windows 10/11 x64, a GPU with a recent driver (D3D12).
-  No Unreal Engine or Visual Studio installation is required;
-  the MSVC runtime is bundled next to the executable.
+  No Unreal Engine or Visual Studio installation is required; the MSVC runtime
+  ships next to the executables.
+
+NOTE
+  The build is unsigned, so Windows SmartScreen may ask for confirmation on first
+  run: click "More info" -> "Run anyway".
 
 BUILD INFO
   Unreal Engine 5.8.4, Shipping configuration.
-  Source and tools: see the project repository.
 "@
 Set-Content -Path (Join-Path $Stage 'README.txt') -Value $readme -Encoding ASCII
 
