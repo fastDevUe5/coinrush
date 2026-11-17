@@ -1,4 +1,4 @@
-﻿// Third-person player character built entirely from engine primitives (no skeletal mesh needed).
+// Third-person player character built entirely from engine primitives (no skeletal mesh needed).
 
 #pragma once
 
@@ -26,10 +26,14 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/** Landing thud: a short decaying camera dip. */
+	virtual void Landed(const FHitResult& Hit) override;
+
 private:
 	void UpdateLook(float DeltaSeconds);
 	void UpdateMove(float DeltaSeconds);
 	void UpdateJump();
+	void UpdateLandShake(float DeltaSeconds);
 	void ReadRoundShortcuts();
 
 	UPROPERTY(VisibleAnywhere, Category = "CoinRush")
@@ -70,6 +74,8 @@ private:
 
 	float CameraYaw = 0.f;
 	float CameraPitch = -20.f;
+	float LandShakeTime = 0.f;
+	float LandShakeDuration = 0.22f;
 	bool bSprinting = false;
 	bool bJumpKeyHeld = false;
 	bool bEnterKeyHeld = false;

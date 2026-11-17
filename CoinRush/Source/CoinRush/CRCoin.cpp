@@ -1,10 +1,12 @@
 #include "CRCoin.h"
 
 #include "CRCharacter.h"
+#include "CRCoinBurst.h"
 #include "CRGameMode.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
@@ -61,6 +63,20 @@ void ACRCoin::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	// Collected: play a short pop (grow, then vanish) instead of disappearing instantly.
+	if (bCollected)
+	{
+		PopTime -= DeltaSeconds;
+		const float Alpha = 1.f - FMath::Clamp(PopTime / FMath::Max(PopDuration, KINDA_SMALL_NUMBER), 0.f, 1.f);
+		SetActorScale3D(FVector(1.f + 1.1f * Alpha));
+
+		if (PopTime <= 0.f)
+		{
+			Destroy();
+		}
+		return;
+	}
+
 	AddActorLocalRotation(FRotator(0.f, SpinSpeed * DeltaSeconds, 0.f));
 
 	const float Time = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
@@ -76,14 +92,18 @@ void ACRCoin::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 
 	bCollected = true;
+	PopTime = PopDuration;
 	Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Glow->SetIntensity(1800.f);
 	Glow->SetAttenuationRadius(500.f);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->SpawnActor<ACRCoinBurst>(ACRCoinBurst::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
+	}
 
 	if (ACRGameMode* GameMode = Cast<ACRGameMode>(UGameplayStatics::GetGameMode(this)))
 	{
 		GameMode->AddCoin();
 	}
-
-	Destroy();
 }

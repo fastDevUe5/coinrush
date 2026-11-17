@@ -120,3 +120,12 @@
 - **正确**：查文档先确认版本；对 API 细节以 `Engine/Source` 为准。差异清单见
   [`Docs/UE5-Knowledge/unreal-mcp-practice.md`](UE5-Knowledge/unreal-mcp-practice.md) 的"官方文档（当前是 5.9 版）与本机 5.8.4 的差异"。
 - **出处**：<https://dev.epicgames.com/documentation/unreal-engine/unreal-mcp-in-unreal-editor?lang=zh-CN>（页面标题为 5.9 文档）vs 本机 `ModelContextProtocolSettings.h:42-44`
+
+## 17. `-game` 启动时 Python/ToolsetRegistry 报 AttributeError
+
+- **症状**：游戏日志开头出现
+  `module 'unreal' has no attribute 'PythonTestRunner'`、`has no attribute 'AgentSkill'`，来自
+  `Engine/Plugins/Experimental/ToolsetRegistry/Content/Python/init_unreal.py`。
+- **原因**：这些是编辑器插件的 Python 初始化脚本，在 `-game` 模式下运行时缺少编辑器 Python 绑定；属于噪音。
+- **处理**：忽略即可，不影响游戏；如果嫌吵，可以在打包版里不启用这些插件（编辑器专用，不进包）。
+- **出处**：`Saved\Logs\CoinRush.log` 启动段，2026-11-17 实测

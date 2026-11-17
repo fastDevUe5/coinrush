@@ -6,6 +6,7 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
@@ -53,7 +54,18 @@ void ACRHUD::DrawHUD()
 	DrawPanel(0.f, 0.f, ViewW, 88.f * UIScale, FLinearColor(0.02f, 0.03f, 0.06f, 0.55f));
 
 	const FString CoinText = FString::Printf(TEXT("COINS   %d / %d"), GameMode->GetScore(), GameMode->GetTotalCoins());
-	DrawLabel(CoinText, 42.f * UIScale, 22.f * UIScale, LargeFont, Gold, 1.25f * UIScale);
+
+	// Pulse the counter whenever the score changes (0.35s ease-out).
+	const float Now = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.f;
+	if (GameMode->GetScore() != LastScore)
+	{
+		LastScore = GameMode->GetScore();
+		ScorePulseStart = Now;
+	}
+	const float ScorePulse = FMath::Clamp(1.f - (Now - ScorePulseStart) / 0.35f, 0.f, 1.f);
+	const float ScoreScale = 1.25f + 0.55f * ScorePulse * ScorePulse;
+
+	DrawLabel(CoinText, 42.f * UIScale, 22.f * UIScale, LargeFont, Gold, ScoreScale * UIScale);
 
 	const int32 WholeSeconds = FMath::CeilToInt(GameMode->GetTimeLeft());
 	const FString TimeText = FString::Printf(TEXT("%02d"), WholeSeconds);

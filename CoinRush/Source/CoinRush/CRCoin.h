@@ -42,8 +42,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "CoinRush")
 	float BobAmplitude = 16.f;
 
+	/** How long the collect "pop" (scale up, then vanish) takes. */
+	UPROPERTY(EditAnywhere, Category = "CoinRush")
+	float PopDuration = 0.18f;
+
 private:
 	FVector BaseLocation = FVector::ZeroVector;
 	float Phase = 0.f;
+	float PopTime = 0.f;
 	bool bCollected = false;
 };

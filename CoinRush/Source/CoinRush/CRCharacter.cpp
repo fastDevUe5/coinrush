@@ -122,6 +122,7 @@ void ACRCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	ReadRoundShortcuts();
+	UpdateLandShake(DeltaSeconds);
 
 	if (const ACRGameMode* GameMode = Cast<ACRGameMode>(UGameplayStatics::GetGameMode(this)))
 	{
@@ -135,6 +136,34 @@ void ACRCharacter::Tick(float DeltaSeconds)
 	UpdateLook(DeltaSeconds);
 	UpdateMove(DeltaSeconds);
 	UpdateJump();
+}
+
+void ACRCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	LandShakeTime = LandShakeDuration;
+}
+
+void ACRCharacter::UpdateLandShake(float DeltaSeconds)
+{
+	if (LandShakeTime <= 0.f)
+	{
+		return;
+	}
+
+	LandShakeTime = FMath::Max(0.f, LandShakeTime - DeltaSeconds);
+	const float Alpha = LandShakeTime / FMath::Max(LandShakeDuration, KINDA_SMALL_NUMBER);
+	const float Offset = FMath::Sin(LandShakeTime * 62.f) * 2.6f * Alpha * Alpha;
+
+	FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, -FMath::Abs(Offset)));
+	FollowCamera->SetRelativeRotation(FRotator(Offset * 0.35f, 0.f, 0.f));
+
+	if (LandShakeTime <= 0.f)
+	{
+		FollowCamera->SetRelativeLocation(FVector::ZeroVector);
+		FollowCamera->SetRelativeRotation(FRotator::ZeroRotator);
+	}
 }
 
 void ACRCharacter::UpdateLook(float DeltaSeconds)

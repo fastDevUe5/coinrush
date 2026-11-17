@@ -8,6 +8,7 @@ param(
     [string]$HoldKeys = '',
     [int]$HoldSeconds = 0,
     [string]$Sequence = '',
+    [int]$SettleMs = 1200,
     [string]$ExecCmds = '',
     [string]$ExtraArgs = '',
     [switch]$Editor,
@@ -233,7 +234,7 @@ else {
         }
 
         # Give the camera lag and physics a moment to settle before the screenshot.
-        Start-Sleep -Milliseconds 1200
+        Start-Sleep -Milliseconds $SettleMs
 
         $client = New-Object GameWin+RECT
         [void][GameWin]::GetClientRect($best, [ref]$client)

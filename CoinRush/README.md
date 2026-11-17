@@ -170,6 +170,21 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 
 改到计分/计时/胜负时必须跑一遍——这是目前唯一的回归网。
 
+## 手感反馈（juice，已实现）
+
+全部零资产、纯代码，改完只需 `Rebuild_All.bat`：
+
+| 反馈 | 实现 | 调参位置 |
+| --- | --- | --- |
+| 金币拾取“弹一下” | 拾取后放大 2.1 倍并在 0.18s 内消失，不再瞬间销毁 | `CRCoin.h` 的 `PopDuration` |
+| 拾取粒子 | 8 个小型发光球向外飞散 + 落地重力 + 一盏会衰减的点光 | `CRCoinBurst` 的 `NumShards` / `LifeSeconds` |
+| 落地震屏 | 落地时相机下沉 + 轻微俯仰，0.22s 指数衰减 | `ACRCharacter::Landed` / `LandShakeDuration` |
+| 计分跳动 | 金币计数变化时字号放大 1.55 倍并 0.35s 回弹 | `CRHUD.cpp` 的 `ScorePulse` |
+| 冲刺 FOV | 按住 Shift 时 FOV 从 88 拉到 99 | `CRCharacter.h` 的 `SprintFieldOfView` |
+
+验证方式：`RunGame.ps1 -Sequence "E:0.8|W:0.75" -SettleMs 60`，日志出现
+`Collect burst spawned` 且紧接 `Coin 1/8`，截图可见角色周围的发光碎片。
+
 ## 打包（已实测通过）
 
 ```powershell

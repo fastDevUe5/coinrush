@@ -21,4 +21,8 @@ private:
 	void DrawLabel(const FString& Text, float X, float Y, UFont* Font, const FLinearColor& Color, float Scale = 1.f);
 	void DrawLabelCentered(const FString& Text, float CenterX, float Y, UFont* Font, const FLinearColor& Color, float Scale = 1.f);
 	float MeasureWidth(const FString& Text, UFont* Font, float Scale) const;
+
+	/** Score "pop": the coin counter scales up briefly whenever it changes. */
+	int32 LastScore = -1;
+	float ScorePulseStart = -100.f;
 };
