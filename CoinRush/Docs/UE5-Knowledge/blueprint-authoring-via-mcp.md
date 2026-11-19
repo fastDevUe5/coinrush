@@ -79,6 +79,39 @@ BP 的默认值存在 CDO 上，组件是 CDO 的子对象，所以要分两步�
 - 立方体网格要能看出旋转，必须用**非均匀缩放**（本例 `4.0 / 0.5 / 0.5` 做成长条），否则 90° 对称看不出转动。
 - 实测：`BP_Turret` 在游戏里长条始终指向玩家，`Saved/Screenshots/BP_Turret_InGame2.png` 可辨。
 
+## 实例级设置：移动性与碰撞（踩过坑）
+
+**StaticMeshActor 蓝图里 Tick 的旋转/位移会被静默忽略**——它的网格组件默认是 `Static` 移动性，
+运行时只有一条日志：`Mobility of ... has to be 'Movable' if you'd like to move.`
+
+- 在 CDO 的组件上用 `set_properties({"Mobility": "Movable"})` **改不动**（返回 true 但会被模板覆盖）；
+- 可靠做法：在关卡生成器里对**实例组件**设置（`Tools/build_level.py::configure_blueprint_prop`）：
+
+```python
+component = actor.get_components_by_class(unreal.StaticMeshComponent)[0]
+component.set_mobility(unreal.ComponentMobility.MOVABLE)          # 允许被蓝图移动
+component.set_collision_profile_name("OverlapAllDynamic")          # 拾取物：重叠而非阻挡
+component.set_editor_property("generate_overlap_events", True)     # 注意：没有 set_generate_overlap_events
+```
+
+`set_properties` 改 `BodyInstance.CollisionProfileName` 同样不生效——碰撞必须在实例上用函数调用设置。
+
+## 实例级拾取实测（BP_TimeOrb）
+
+```
+事件 ActorBeginOverlap
+  → CoinRush|AddBonusTime (Seconds = 5.0)
+  → Actor|DestroyActor
+```
+
+运行日志：
+
+```
+[CoinRush] Bonus time +5.0s (time left 50.0s)
+```
+
+HUD 倒计时从 44 变 49、球消失——蓝图确实参与了玩法。
+
 ## 什么时候值得用
 
 - 需要**少量**蓝图侧逻辑（关卡里的小机关、美术/音频同学要接的钩子、快速原型验证）。

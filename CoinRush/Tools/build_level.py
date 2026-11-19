@@ -273,7 +273,37 @@ def build_blueprint_props():
         if actor is not None:
             actor.set_actor_scale3d(unreal.Vector(scale[0], scale[1], scale[2]))
             actor.set_actor_label(asset_path.rsplit("/", 1)[-1])
+            configure_blueprint_prop(actor, asset_path)
             log("Spawned Blueprint prop %s" % asset_path.rsplit("/", 1)[-1])
+
+
+def configure_blueprint_prop(actor, asset_path):
+    """Instance-level setup the Blueprint template cannot carry by itself.
+
+    StaticMeshActor blueprints inherit a Static mesh component; any Blueprint logic that
+    moves the actor is silently ignored unless the instance component is Movable.
+    Overlap pickups also need overlap generation enabled on the component.
+    """
+    components = actor.get_components_by_class(unreal.StaticMeshComponent)
+    if not components:
+        log("no StaticMeshComponent on %s" % asset_path)
+        return
+
+    component = components[0]
+    try:
+        component.set_mobility(unreal.ComponentMobility.MOVABLE)
+    except Exception as exc:
+        log("mobility setup failed on %s: %s" % (asset_path, exc))
+
+    if asset_path.endswith("BP_TimeOrb"):
+        try:
+            component.set_collision_profile_name("OverlapAllDynamic")
+        except Exception as exc:
+            log("collision profile failed on %s: %s" % (asset_path, exc))
+        try:
+            component.set_editor_property("generate_overlap_events", True)
+        except Exception as exc:
+            log("overlap events flag failed on %s: %s" % (asset_path, exc))
 
 
 def main():

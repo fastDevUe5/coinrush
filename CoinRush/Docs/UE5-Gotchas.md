@@ -207,3 +207,15 @@
   事件节点用 `create_node` 建，不要用 `write_graph_dsl` 的 `(event ...)`（5.8.4 + 中文环境实测解析失败）。
 - **补充**：`get_node_type_pins` 会创建临时节点；孤立节点会导致编译失败且错误列表为空。
 - **出处**：2026-11-19 实测；`Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md`
+
+## 25. StaticMeshActor 蓝图的 Tick 逻辑被静默忽略（组件移动性 = Static）
+
+- **症状**：蓝图里 Tick 调 `AddActorLocalRotation` / `SetActorRotation`，运行时只有日志
+  `Mobility of ... StaticMeshComponent0 has to be 'Movable' if you'd like to move.`，物体纹丝不动。
+- **原因**：`StaticMeshActor` 及其子类的网格组件默认 `Static` 移动性。用 `set_properties({"Mobility": "Movable"})`
+  改 CDO 组件**不生效**（返回 true，但被组件模板覆盖）。
+- **正确**：在生成器里对实例组件调用 `component.set_mobility(unreal.ComponentMobility.MOVABLE)`；
+  拾取物还要 `set_collision_profile_name("OverlapAllDynamic")` + `set_editor_property("generate_overlap_events", True)`
+  （没有 `set_generate_overlap_events`）。属性 JSON 改 `BodyInstance.CollisionProfileName` 也不生效。
+- **验证**：改完后游戏日志不再出现该警告，倒计时 44→49、加时球消失。
+- **出处**：2026-11-19 实测；`Tools/build_level.py::configure_blueprint_prop`
