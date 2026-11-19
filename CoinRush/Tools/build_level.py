@@ -247,24 +247,31 @@ def build_lighting():
 def build_blueprint_props():
     """Decorations authored as Blueprints (see Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md).
 
-    Optional: if the Blueprint asset is missing or not compiled yet, the level still builds.
+    Optional: if a Blueprint asset is missing or not compiled yet, the level still builds.
     """
-    blueprint = EDITOR_ASSETS.load_asset("/Game/Blueprints/BP_SpinningCube")
-    if blueprint is None:
-        log("skip Blueprint prop: /Game/Blueprints/BP_SpinningCube not found")
-        return
+    props = (
+        # name, location, scale
+        ("/Game/Blueprints/BP_SpinningCube", (350.0, -900.0, 60.0), (1.4, 1.4, 1.4)),
+        ("/Game/Blueprints/BP_Turret", (300.0, -1000.0, 80.0), (4.0, 0.5, 0.5)),
+    )
 
-    generated_class = blueprint.generated_class()
-    if generated_class is None:
-        log("skip Blueprint prop: BP_SpinningCube has no generated class (compile it first)")
-        return
+    for asset_path, location, scale in props:
+        blueprint = EDITOR_ASSETS.load_asset(asset_path)
+        if blueprint is None:
+            log("skip Blueprint prop: %s not found" % asset_path)
+            continue
 
-    actor = ACTORS.spawn_actor_from_class(
-        generated_class, unreal.Vector(350.0, -900.0, 60.0), unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0))
-    if actor is not None:
-        actor.set_actor_scale3d(unreal.Vector(1.4, 1.4, 1.4))
-        actor.set_actor_label("BP_SpinningCube")
-        log("Spawned Blueprint prop BP_SpinningCube")
+        generated_class = blueprint.generated_class()
+        if generated_class is None:
+            log("skip Blueprint prop: %s has no generated class (compile it first)" % asset_path)
+            continue
+
+        actor = ACTORS.spawn_actor_from_class(
+            generated_class, unreal.Vector(location[0], location[1], location[2]), unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0))
+        if actor is not None:
+            actor.set_actor_scale3d(unreal.Vector(scale[0], scale[1], scale[2]))
+            actor.set_actor_label(asset_path.rsplit("/", 1)[-1])
+            log("Spawned Blueprint prop %s" % asset_path.rsplit("/", 1)[-1])
 
 
 def main():

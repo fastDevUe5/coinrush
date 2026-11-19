@@ -60,6 +60,25 @@ BP 的默认值存在 CDO 上，组件是 CDO 的子对象，所以要分两步�
 立方体绕 Z 轴旋转在**静态截图**里看不出来（90° 对称）。要肉眼验证，把实例缩放改成非对称（如 `1.6 / 0.8 / 1.0`），
 或挂一个偏心的小网格；否则请用“图已编译 + `get_node_infos` 确认连线 + PIE 日志”三者一起证明。
 
+## 实战样例二：朝向玩家的炮塔（BP_Turret）
+
+节点链（全部在 EventGraph，Tick 驱动）：
+
+```
+添加事件|事件Tick
+  → 变换|SetActorRotation (NewRotation)
+      ← 数学|旋转|FindLookatRotation (ReturnValue)
+          Start  ← 变换|GetActorLocation（self 留空 = 本 Actor）
+          Target ← 变换|GetActorLocation（self ← 游戏|GetPlayerPawn.ReturnValue）
+```
+
+要点：
+
+- `GetActorLocation` 的 `self` 不连线时默认就是本 Actor；要取别的 Actor 就把引用接到 `self`。
+- 朝向节点名是 `FindLookatRotation`（注意小写 `at`，与 C++ 的 `FindLookAtRotation` 不同）。
+- 立方体网格要能看出旋转，必须用**非均匀缩放**（本例 `4.0 / 0.5 / 0.5` 做成长条），否则 90° 对称看不出转动。
+- 实测：`BP_Turret` 在游戏里长条始终指向玩家，`Saved/Screenshots/BP_Turret_InGame2.png` 可辨。
+
 ## 什么时候值得用
 
 - 需要**少量**蓝图侧逻辑（关卡里的小机关、美术/音频同学要接的钩子、快速原型验证）。
