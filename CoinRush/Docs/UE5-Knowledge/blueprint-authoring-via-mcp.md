@@ -1,0 +1,50 @@
+# 用 MCP 写 Blueprint 图（引擎 5.8.4｜实测 2026-11-19 ✅）
+
+## 一句话结论
+
+**能。** UE 5.8 官方 MCP 的 `editor_toolset.toolsets.blueprint.BlueprintTools`（51 个工具）可以**在不开编辑器界面的情况下创建 Blueprint、加节点、连线、设默认值、编译**；
+Python 做不到这件事（见 `editor-python-boundaries.md`），但 MCP 可以。
+
+## 实测走通的流程
+
+以 `BP_SpinningCube`（父类 `StaticMeshActor`）为例，全部通过 MCP 调用完成：
+
+| 步骤 | 工具 | 参数要点 |
+| --- | --- | --- |
+| 1. 建 BP | `BlueprintTools.create` | `folder_path="/Game/Blueprints"`, `asset_name`, `asset_type`=父类 Class |
+| 2. 加事件 | `create_node` | `graph`=BP 的 `EventGraph`，`type_id="添加事件|事件BeginPlay"`，`pos` |
+| 3. 加函数调用 | `create_node` | `type_id="开发|PrintString"` |
+| 4. 查 pin | `get_node_type_pins` | 返回 pin 名与 `index_id`（注意：会**真的创建一个临时节点**） |
+| 5. 设默认值 | `set_pin_value` | `pin={direction, index_id, node.refPath}`, `value="..."` |
+| 6. 连线 | `connect_pins` | `output_pin`（事件的 `then`, index 1）→ `input_pin`（PrintString 的 `execute`, index 0） |
+| 7. 编译 | `compile_blueprint` | 返回 `null` 即成功；失败会抛异常 |
+| 8. 放进关卡 | `SceneTools.add_to_scene_from_class` | `actor_type` = `.../BP_SpinningCube.BP_SpinningCube_C` |
+| 9. 运行验证 | `EditorAppToolset.StartPIE` / `StopPIE` | PIE 里执行到 BeginPlay |
+
+## 运行时证据
+
+```
+LogBlueprint: Compiling Blueprint '/Game/Blueprints/BP_SpinningCube.BP_SpinningCube'
+LogBlueprintUserMessages: [BP_SpinningCube_C_0] Blueprint BeginPlay fired
+```
+
+## 坑（中文编辑器必看）
+
+1. **`type_id` 是本地化的**。这台机器编辑器是中文，节点类型 ID 不是文档里的英文：
+   - `添加事件|事件BeginPlay`、`添加事件|事件Tick`
+   - `开发|PrintString`
+   - `变换|AddActorLocalRotation`
+   - `数学|旋转|MakeRotator`
+   用 `find_node_types(graph, type_id_filter="BeginPlay", context_pins=[])` 先查真实 ID，别猜。
+2. **`write_graph_dsl` 的 `(event ...)` 形式在中文环境解析失败**：
+   `AddEvent|EventBeginPlay does not exist`（`ReceiveBeginPlay`、`事件BeginPlay` 同样失败）。
+   事件节点请用 `create_node` 建；DSL 目前只适合写**表达式/函数**部分。
+3. **`get_node_type_pins` 会创建节点实例**（`K2Node_CallFunction_N`），只查 pin 也会在图里留下节点。拿到 pin 名后要么复用该节点，要么 `delete_node` 清掉。
+4. **孤立节点会让编译失败**，而错误列表可能为空（`Compile Errors: []`）。改图前先确认图里只有计划内的节点；`find_nodes(entry_points_only=true)` 能列出所有入口节点。
+5. `read_graph_dsl` 对事件图可能返回空字符串（本次实测为空），验证逻辑更可靠的方式是 `get_node_infos` + 编译 + PIE 日志。
+
+## 什么时候值得用
+
+- 需要**少量**蓝图侧逻辑（关卡里的小机关、美术/音频同学要接的钩子、快速原型验证）。
+- 需要**批量**：同一套节点结构复制到 N 个 BP（`duplicate` + `retarget_node_class`）。
+- 不适合：大规模 gameplay 逻辑（C++ 可 diff、可测试、可复用；蓝图二进制不可 review）。

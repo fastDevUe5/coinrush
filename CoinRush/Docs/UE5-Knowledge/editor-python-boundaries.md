@@ -29,7 +29,7 @@
 
 | 能力 | 现状 | 替代方案 |
 | --- | --- | --- |
-| 蓝图节点图（加节点、连线） | 无公开 API | 逻辑写 C++，蓝图只做资产容器 |
+| 蓝图节点图（加节点、连线） | **Python 无公开 API**；但 **MCP 的 BlueprintTools 可以**（见 [blueprint-authoring-via-mcp.md](blueprint-authoring-via-mcp.md)） | 逻辑写 C++；少量蓝图逻辑走 MCP |
 | UMG Widget 层级（拖控件、设锚点） | 只能建 WidgetBlueprint 资产，层级编辑很弱 | 本工程直接用 `AHUD` + Canvas 绘制 |
 | Niagara 图、Control Rig、动画状态机 | 基本不可行 | 交给编辑器人工，或用 MCP 的 Niagara toolset 试 |
 | Slate 编辑器面板操作 | Python 不可达 | MCP 的 `SlateInspectorToolset` |

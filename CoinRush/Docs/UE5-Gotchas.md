@@ -196,3 +196,14 @@
   `Tools/MakeRelease.ps1` 已改为从 `Saved\Package\Shipping\Windows` 整目录打包。
 - **验证**：解压到全新目录 → 运行 `CoinRush.exe` → 进程存活、窗口标题 `CoinRush`。
 - **出处**：2026-11-17 实测；`Saved\Package\Shipping\Windows\` 布局
+
+## 24. Blueprint 工具的 `type_id` 是本地化的（中文编辑器）
+
+- **症状**：照文档用 `Math|Rotator|MakeRotator`、`Development|PrintString` 写图，报
+  `The node could not be created` / `AddEvent|EventBeginPlay does not exist`。
+- **原因**：MCP 的节点类型 ID 取自编辑器本地化后的分类与标题。中文编辑器下实际是
+  `数学|旋转|MakeRotator`、`开发|PrintString`、`变换|AddActorLocalRotation`、`添加事件|事件BeginPlay`。
+- **正确**：先用 `BlueprintTools.find_node_types(graph, type_id_filter="BeginPlay", context_pins=[])` 拿真实 ID；
+  事件节点用 `create_node` 建，不要用 `write_graph_dsl` 的 `(event ...)`（5.8.4 + 中文环境实测解析失败）。
+- **补充**：`get_node_type_pins` 会创建临时节点；孤立节点会导致编译失败且错误列表为空。
+- **出处**：2026-11-19 实测；`Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md`

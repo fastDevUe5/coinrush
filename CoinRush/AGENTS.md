@@ -106,15 +106,17 @@ powershell -ExecutionPolicy Bypass -File Tools\DecodeMcpCapture.ps1 -SpillPath <
 系统性的知识（机制、取舍、可复制片段）放在 [`Docs/UE5-Knowledge/`](Docs/UE5-Knowledge/README.md)，
 按“引擎机制 / 编辑器自动化 / 构建发布 / 渲染性能”四类组织；**结论必须标引擎版本与出处**，冲突时以源码和实测为准。
 
-已就绪的三篇（P0）：
+已就绪的四篇（P0）：
 
 - [`gameplay-framework-lifecycle.md`](Docs/UE5-Knowledge/gameplay-framework-lifecycle.md) —— Pawn/HUD 在 BeginPlay 之前就生成（5.8.4 源码核对）
 - [`editor-python-boundaries.md`](Docs/UE5-Knowledge/editor-python-boundaries.md) —— Python 能做什么、不能做什么
 - [`unreal-mcp-practice.md`](Docs/UE5-Knowledge/unreal-mcp-practice.md) —— MCP 启用、调用模型、会话失效与恢复
+- [`blueprint-authoring-via-mcp.md`](Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md) —— 用 MCP 建蓝图/连线/编译，含本地化 type_id 的坑
 
 ## 6. 不要做的事
 
 - 不要为了"更省事"改 `Config/DefaultEngine.ini` 里的 `r.DynamicGlobalIlluminationMethod=0` / `r.Shadow.Virtual.Enable=0` 而不测启动时间；
-- 不要把玩法逻辑写进蓝图（本工程的设计前提是**零蓝图依赖**，全部 C++ + Python）；
+- 不要把玩法逻辑写进蓝图（本工程的设计前提是**零蓝图依赖**，全部 C++ + Python）；蓝图只用于胶水/示例，
+  需要时用 MCP 的 BlueprintTools 写（见 `Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md`）；
 - 不要用 `-log` 启动游戏后靠截屏判断（日志窗口可能挡住画面），用 `RunGame.ps1`；
 - 不要在构建产物目录里手工改文件（`Binaries/`、`Intermediate/` 下次编译就没了）。

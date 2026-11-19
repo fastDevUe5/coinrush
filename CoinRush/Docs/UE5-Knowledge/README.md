@@ -51,6 +51,7 @@
 | P0 | [Gameplay Framework 生命周期](gameplay-framework-lifecycle.md) | BeginPlay/StartPlay/PostLogin 顺序、Pawn 与 HUD 何时生成 | ✅ 5.8.4 源码核对 |
 | P0 | [编辑器 Python 的能力边界](editor-python-boundaries.md) | 哪些能建、哪些必须走 C++、属性命名规律 | ✅ 本工程实测 |
 | P0 | [Unreal MCP 实操](unreal-mcp-practice.md) | tool search 模式、call_tool 套用、会话失效、视口截图 | ✅ 本工程实测 |
+| P0 | [用 MCP 写 Blueprint 图](blueprint-authoring-via-mcp.md) | 建图/连线/编译/PIE 验证，本地化 type_id 的坑 | ✅ 2026-11-19 实测 |
 | P1 | 构建与打包 | UBT 参数、Live Coding 互斥、BuildCookRun 两步法、产物结构 | ⬜（素材已有：`Docs/UE5-Gotchas.md` 4/5 条 + `Tools/Package.ps1`） |
 | P1 | 渲染开关决策表 | Lumen/Nanite/VSM/TSR 各自代价、什么时候关 | ⬜ |
 | P2 | 资产管线 | 导入设置、LOD/Nanite、材质实例、命名与 LFS | ⬜ |
