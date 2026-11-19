@@ -244,6 +244,29 @@ def build_lighting():
     spawn(unreal.PlayerStart, (0.0, -1500.0, 110.0), rotation=(0.0, 0.0, 0.0), label="PlayerStart")
 
 
+def build_blueprint_props():
+    """Decorations authored as Blueprints (see Docs/UE5-Knowledge/blueprint-authoring-via-mcp.md).
+
+    Optional: if the Blueprint asset is missing or not compiled yet, the level still builds.
+    """
+    blueprint = EDITOR_ASSETS.load_asset("/Game/Blueprints/BP_SpinningCube")
+    if blueprint is None:
+        log("skip Blueprint prop: /Game/Blueprints/BP_SpinningCube not found")
+        return
+
+    generated_class = blueprint.generated_class()
+    if generated_class is None:
+        log("skip Blueprint prop: BP_SpinningCube has no generated class (compile it first)")
+        return
+
+    actor = ACTORS.spawn_actor_from_class(
+        generated_class, unreal.Vector(350.0, -900.0, 60.0), unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0))
+    if actor is not None:
+        actor.set_actor_scale3d(unreal.Vector(1.4, 1.4, 1.4))
+        actor.set_actor_label("BP_SpinningCube")
+        log("Spawned Blueprint prop BP_SpinningCube")
+
+
 def main():
     if not ensure_empty_level():
         raise RuntimeError("Could not create or load " + LEVEL_PATH)
@@ -251,6 +274,7 @@ def main():
     materials = make_materials()
     build_arena(materials)
     build_props(materials)
+    build_blueprint_props()
     build_lighting()
 
     saved = LEVELS.save_current_level()

@@ -43,6 +43,23 @@ LogBlueprintUserMessages: [BP_SpinningCube_C_0] Blueprint BeginPlay fired
 4. **孤立节点会让编译失败**，而错误列表可能为空（`Compile Errors: []`）。改图前先确认图里只有计划内的节点；`find_nodes(entry_points_only=true)` 能列出所有入口节点。
 5. `read_graph_dsl` 对事件图可能返回空字符串（本次实测为空），验证逻辑更可靠的方式是 `get_node_infos` + 编译 + PIE 日志。
 
+## 给 Blueprint 配网格和材质（CDO 上的组件）
+
+BP 的默认值存在 CDO 上，组件是 CDO 的子对象，所以要分两步：
+
+1. `BlueprintTools.get_default_object(blueprint)` → 拿到 CDO（`...Default__BP_X_C`）
+2. `ActorTools.get_components(actor=CDO)` → 组件引用（如 `...:StaticMeshComponent0`）
+3. `ObjectTools.set_properties(instance=组件, values='{"StaticMesh": "/Engine/BasicShapes/Cube.Cube"}')`
+   材质用 `{"OverrideMaterials": ["/Game/Materials/M_Accent.M_Accent"]}`
+4. 直接对 BP 资产 `set_properties` 设 `StaticMeshComponent` 会失败（子对象属性必须先拿组件引用）
+
+查 actor 变换用 `ActorTools.get_actor_transform`（`get_transform` 不存在）。
+
+## 运行时验证的局限
+
+立方体绕 Z 轴旋转在**静态截图**里看不出来（90° 对称）。要肉眼验证，把实例缩放改成非对称（如 `1.6 / 0.8 / 1.0`），
+或挂一个偏心的小网格；否则请用“图已编译 + `get_node_infos` 确认连线 + PIE 日志”三者一起证明。
+
 ## 什么时候值得用
 
 - 需要**少量**蓝图侧逻辑（关卡里的小机关、美术/音频同学要接的钩子、快速原型验证）。
