@@ -135,6 +135,16 @@ void ACRHUD::DrawHUD()
 		GameMode->GetScore(), GameMode->GetTotalCoins(), GameMode->GetBestStreak());
 	DrawLabelCentered(Summary, ViewW * 0.5f, ViewH * 0.5f - 10.f * UIScale, LargeFont, Paper, 1.1f * UIScale);
 
+	const FString RecordLine = FString::Printf(TEXT("BEST   %d / %d COINS      BEST STREAK   x%d"),
+		GameMode->GetRecordScore(), GameMode->GetTotalCoins(), GameMode->GetRecordStreak());
+	DrawLabelCentered(RecordLine, ViewW * 0.5f, ViewH * 0.5f + 40.f * UIScale, SmallFont,
+		FLinearColor(0.72f, 0.78f, 0.88f, 1.f), 1.0f * UIScale);
+
+	if (GameMode->HasNewRecord())
+	{
+		DrawLabelCentered(TEXT("NEW RECORD!"), ViewW * 0.5f, ViewH * 0.5f + 84.f * UIScale, LargeFont, Gold, 1.3f * UIScale);
+	}
+
 	DrawLabelCentered(TEXT("PRESS ENTER TO PLAY AGAIN     ESC TO QUIT"), ViewW * 0.5f, ViewH * 0.5f + 90.f * UIScale, SmallFont,
 		FLinearColor(0.7f, 0.76f, 0.85f, 1.f), 1.0f * UIScale);
 }

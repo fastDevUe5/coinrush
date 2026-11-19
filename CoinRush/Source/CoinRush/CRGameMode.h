@@ -6,9 +6,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "CRRoundModel.h"
+#include "CRScoreRecord.h"
 #include "CRGameMode.generated.h"
 
 class USoundBase;
+class UCRSaveGame;
 
 /**
  * Round rules: 8 coins, 75 seconds, collect them all to win.
@@ -22,6 +24,7 @@ public:
 	ACRGameMode();
 
 	virtual void StartPlay() override;
+	virtual void BeginPlay() override;
 
 	/** Called by a coin the moment the player touches it. */
 	void AddCoin();
@@ -67,10 +70,27 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	float GetRoundSeconds() const { return RoundSeconds; }
 
+	/** Best score stored in the save slot (survives restarts). */
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	int32 GetRecordScore() const { return Record.BestScore; }
+
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	int32 GetRecordStreak() const { return Record.BestStreak; }
+
+	/** True when the round that just ended beat the stored record. */
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	bool HasNewRecord() const { return bNewRecord; }
+
 protected:
 	void SpawnCoins();
 	void TickSecond();
 	void FinishRound(bool bInWin);
+
+	/** Loads the save slot into Record, creating it when missing. */
+	void LoadRecord();
+
+	/** Persists Record into the save slot. */
+	void SaveRecord();
 
 	/** Length of one round, in seconds. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CoinRush")
@@ -78,6 +98,18 @@ protected:
 
 private:
 	FTimerHandle SecondTimerHandle;
+
+	/** Save slot name; bump the version suffix if the layout changes. */
+	static const TCHAR* SaveSlot;
+
+	/** Best score/streak, mirrored from the save slot. */
+	FCRScoreRecord Record;
+
+	/** Set when the round that just ended improved the record. */
+	bool bNewRecord = false;
+
+	UPROPERTY()
+	TObjectPtr<UCRSaveGame> SaveGame;
 
 	/** Pure state, unit tested in Private/Tests/CRRoundModelTests.cpp. */
 	FCRRoundModel Round;

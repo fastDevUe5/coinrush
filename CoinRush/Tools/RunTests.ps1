@@ -15,7 +15,7 @@ $Log = Join-Path $LogDir 'tests.log'
 $ReportDir = Join-Path $Root 'Saved\TestReports'
 
 & $Cmd "$Project" `
-    "-ExecCmds=Automation RunTests CoinRush.RoundModel" `
+    "-ExecCmds=Automation RunTests CoinRush" `
     "-TestExit=Automation Test Queue Empty" `
     "-ReportExportPath=$ReportDir" `
     -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput *>&1 |

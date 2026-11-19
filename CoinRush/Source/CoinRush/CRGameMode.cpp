@@ -3,11 +3,14 @@
 #include "CRCharacter.h"
 #include "CRCoin.h"
 #include "CRHUD.h"
+#include "CRSaveGame.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
+
+const TCHAR* ACRGameMode::SaveSlot = TEXT("CoinRushProfile");
 
 namespace
 {
@@ -137,7 +140,54 @@ void ACRGameMode::FinishRound(bool bInWin)
 	// 状态由 FCRRoundModel 在 AddCoin/TickSecond 里置位，这里只负责收尾。
 	GetWorldTimerManager().ClearTimer(SecondTimerHandle);
 
-	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round over. Win=%d Score=%d/%d"), bInWin ? 1 : 0, Round.Score, Round.TotalCoins);
+	bNewRecord = Record.Submit(Round.Score, Round.BestStreak);
+	if (bNewRecord)
+	{
+		SaveRecord();
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round over. Win=%d Score=%d/%d Record=%d NewRecord=%d"),
+		bInWin ? 1 : 0, Round.Score, Round.TotalCoins, Record.BestScore, bNewRecord ? 1 : 0);
+}
+
+void ACRGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	LoadRecord();
+}
+
+void ACRGameMode::LoadRecord()
+{
+	if (UGameplayStatics::DoesSaveGameExist(SaveSlot, 0))
+	{
+		SaveGame = Cast<UCRSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlot, 0));
+	}
+
+	if (!SaveGame)
+	{
+		SaveGame = Cast<UCRSaveGame>(UGameplayStatics::CreateSaveGameObject(UCRSaveGame::StaticClass()));
+	}
+
+	if (SaveGame)
+	{
+		Record.BestScore = SaveGame->BestScore;
+		Record.BestStreak = SaveGame->BestStreak;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Record loaded: score=%d streak=%d"), Record.BestScore, Record.BestStreak);
+}
+
+void ACRGameMode::SaveRecord()
+{
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	SaveGame->BestScore = Record.BestScore;
+	SaveGame->BestStreak = Record.BestStreak;
+	UGameplayStatics::SaveGameToSlot(SaveGame, SaveSlot, 0);
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Record saved: score=%d streak=%d"), Record.BestScore, Record.BestStreak);
 }
 
 void ACRGameMode::RestartRound()

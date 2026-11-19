@@ -165,12 +165,27 @@ CoinRush/
 powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 ```
 
-- 覆盖**回合纯逻辑**：集齐全部金币判胜、计时归零判负、结束后再拾取/再计时被忽略。
-- 逻辑被抽到 `Source/CoinRush/CRRoundModel.h`（不碰 UObject/World），所以测试不需要创建关卡，30 秒跑完。
-- 测试代码在 `Source/CoinRush/Private/Tests/CRRoundModelTests.cpp`，过滤名 `CoinRush.RoundModel`。
+- 覆盖**回合纯逻辑**：集齐全部金币判胜、计时归零判负、结束后再拾取/再计时被忽略、加时/扣时、最高纪录提交。
+- 逻辑被抽到 `Source/CoinRush/CRRoundModel.h` 与 `CRScoreRecord.h`（不碰 UObject/World），所以测试不需要创建关卡，约 30 秒跑完。
+- 测试代码在 `Source/CoinRush/Private/Tests/CRRoundModelTests.cpp`，过滤名 `CoinRush`（共 7 个测试）。
 - 输出：`Saved\Logs\tests.log`，每行 `Test Completed. Result={Success|Fail} Path={...}`。
 
-改到计分/计时/胜负时必须跑一遍——这是目前唯一的回归网。
+改到计分/计时/胜负/纪录时必须跑一遍——这是目前唯一的回归网。
+
+## 最高纪录（已持久化）
+
+- `USaveGame`（`CRSaveGame.h`）只存两个字段：`BestScore`、`BestStreak`；
+- 存档槽 `CoinRushProfile`，文件在 `Saved/SaveGames/CoinRushProfile.sav`；
+- 回合结束时 `FCRScoreRecord::Submit()` 判断是否破纪录（纯逻辑、有测试），破了才写盘；
+- 结算页显示 `BEST n / 8 COINS` 与 `BEST STREAK xN`，破纪录时额外显示金色 `NEW RECORD!`。
+
+实测日志：
+
+```
+[CoinRush] Record loaded: score=0 streak=0
+[CoinRush] Record saved: score=1 streak=1
+[CoinRush] Record loaded: score=1 streak=1     <- 下次启动仍然记得
+```
 
 ## 手感反馈（juice，已实现）
 

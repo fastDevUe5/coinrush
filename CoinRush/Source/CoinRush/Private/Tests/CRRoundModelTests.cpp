@@ -1,6 +1,7 @@
 #include "Misc/AutomationTest.h"
 
 #include "CRRoundModel.h"
+#include "CRScoreRecord.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -150,6 +151,30 @@ bool FCRRoundModelPenaltyTest::RunTest(const FString& Parameters)
 	Round.AddTime(-30.f);
 	TestEqual(TEXT("penalty clamps at zero"), Round.TimeLeft, 0.f);
 	TestFalse(TEXT("penalty alone does not finish the round"), Round.bFinished);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCRScoreRecordTest, "CoinRush.ScoreRecord.Submit",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCRScoreRecordTest::RunTest(const FString& Parameters)
+{
+	FCRScoreRecord Record;
+
+	TestTrue(TEXT("first score is a record"), Record.Submit(3, 2));
+	TestEqual(TEXT("best score updated"), Record.BestScore, 3);
+	TestEqual(TEXT("best streak updated"), Record.BestStreak, 2);
+
+	TestFalse(TEXT("worse round is not a record"), Record.Submit(2, 1));
+	TestTrue(TEXT("higher score is a record"), Record.Submit(5, 1));
+	TestEqual(TEXT("streak kept when not beaten"), Record.BestStreak, 2);
+	TestTrue(TEXT("better streak alone is a record"), Record.Submit(5, 4));
+	TestEqual(TEXT("both fields tracked"), Record.BestStreak, 4);
+
+	// A zero round against an empty record is not an improvement.
+	FCRScoreRecord Empty;
+	TestFalse(TEXT("zero does not beat zero"), Empty.Submit(0, 0));
 
 	return true;
 }
