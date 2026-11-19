@@ -73,6 +73,17 @@ struct COINRUSH_API FCRRoundModel
 		return false;
 	}
 
+	/** Grants extra seconds (Blueprint pickups call this through the gameplay statics helper). */
+	void AddTime(float Seconds)
+	{
+		if (bFinished)
+		{
+			return;
+		}
+
+		TimeLeft = FMath::Max(0.f, TimeLeft + Seconds);
+	}
+
 	/** Advances the clock by DeltaSeconds. Returns true when time runs out on this tick. */
 	bool TickSecond(float DeltaSeconds = 1.f)
 	{

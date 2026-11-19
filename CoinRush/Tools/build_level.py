@@ -253,6 +253,8 @@ def build_blueprint_props():
         # name, location, scale
         ("/Game/Blueprints/BP_SpinningCube", (350.0, -900.0, 60.0), (1.4, 1.4, 1.4)),
         ("/Game/Blueprints/BP_Turret", (300.0, -1000.0, 80.0), (4.0, 0.5, 0.5)),
+        # Blueprint pickup: grants +5s through the C++ helper UCRGameplayStatics::AddBonusTime
+        ("/Game/Blueprints/BP_TimeOrb", (700.0, -1500.0, 140.0), (1.0, 1.0, 1.0)),
     )
 
     for asset_path, location, scale in props:

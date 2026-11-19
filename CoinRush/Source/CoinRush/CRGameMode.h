@@ -35,6 +35,10 @@ public:
 	/** Plays the landing thud (2D). */
 	void PlayLandSfx();
 
+	/** Adds seconds to the round clock. Callable from Blueprints (bonus pickups). */
+	UFUNCTION(BlueprintCallable, Category = "CoinRush")
+	void AddBonusTime(float Seconds);
+
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	bool IsRoundFinished() const { return Round.bFinished; }
 

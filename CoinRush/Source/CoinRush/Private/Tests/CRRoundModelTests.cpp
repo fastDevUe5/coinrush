@@ -111,4 +111,29 @@ bool FCRRoundModelStreakTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCRRoundModelBonusTimeTest, "CoinRush.RoundModel.BonusTime",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCRRoundModelBonusTimeTest::RunTest(const FString& Parameters)
+{
+	FCRRoundModel Round;
+	Round.Reset(10.f);
+	Round.SetTotalCoins(8);
+
+	Round.AddTime(2.5f);
+	TestEqual(TEXT("bonus time added"), Round.TimeLeft, 12.5f);
+
+	Round.AddTime(-100.f);
+	TestEqual(TEXT("time never goes negative"), Round.TimeLeft, 0.f);
+
+	FCRRoundModel FinishedRound;
+	FinishedRound.Reset(1.f);
+	FinishedRound.TickSecond(5.f);
+	TestTrue(TEXT("finished by timeout"), FinishedRound.bFinished);
+	FinishedRound.AddTime(10.f);
+	TestEqual(TEXT("bonus ignored after the round ends"), FinishedRound.TimeLeft, 0.f);
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

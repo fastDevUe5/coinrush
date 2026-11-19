@@ -166,3 +166,14 @@ void ACRGameMode::PlayLandSfx()
 
 	UGameplayStatics::PlaySound2D(this, LandSfx, 0.55f, FMath::FRandRange(0.92f, 1.08f));
 }
+
+void ACRGameMode::AddBonusTime(float Seconds)
+{
+	if (Round.bFinished || Seconds <= 0.f)
+	{
+		return;
+	}
+
+	Round.AddTime(Seconds);
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Bonus time +%.1fs (time left %.1fs)"), Seconds, Round.TimeLeft);
+}
