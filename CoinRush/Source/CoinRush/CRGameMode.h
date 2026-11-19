@@ -39,6 +39,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CoinRush")
 	void AddBonusTime(float Seconds);
 
+	/** Removes seconds from the round clock. Callable from Blueprints (hazards). */
+	UFUNCTION(BlueprintCallable, Category = "CoinRush")
+	void ApplyTimePenalty(float Seconds);
+
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	bool IsRoundFinished() const { return Round.bFinished; }
 

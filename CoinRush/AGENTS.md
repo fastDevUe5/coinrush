@@ -81,7 +81,7 @@ powershell -ExecutionPolicy Bypass -File Tools\DecodeMcpCapture.ps1 -SpillPath <
 | `Source/CoinRush/CRCoin.*` | 金币：自转、浮动、点光源、Overlap 拾取 | 半径、发光强度、浮动幅度 |
 | `Source/CoinRush/CRGameMode.*` | 回合流程：生成金币、计时、计分、胜负 | `GCoinSpots`（金币坐标）、`RoundSeconds`、`FinishRound` |
 | `Source/CoinRush/CRHUD.*` | Canvas HUD（无 UMG） | 文案、布局、`cr.DebugInfo` 调试行 |
-| `Tools/build_level.py` | 关卡 + 材质生成（幂等重建） | `build_arena` / `build_props` / `build_lighting` / `make_materials` |
+| `Tools/build_level.py` | 关卡 + 材质生成（幂等重建） | `build_arena` / `build_props` / `build_blueprint_props` / `build_lighting` / `make_materials` |
 | `Config/DefaultEngine.ini` | 默认地图、GameMode、渲染开关 | 关 Lumen/VSM 的两行不要随手删 |
 
 调试开关：控制台 `cr.DebugInfo 1` 会在 HUD 左下角显示角色/相机坐标。

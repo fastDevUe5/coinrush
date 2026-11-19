@@ -16,4 +16,8 @@ public:
 	/** Grants extra seconds to the current round (used by Blueprint bonus pickups). */
 	UFUNCTION(BlueprintCallable, Category = "CoinRush", meta = (WorldContext = "WorldContextObject"))
 	static void AddBonusTime(const UObject* WorldContextObject, float Seconds);
+
+	/** Removes seconds from the current round (used by Blueprint hazards). */
+	UFUNCTION(BlueprintCallable, Category = "CoinRush", meta = (WorldContext = "WorldContextObject"))
+	static void ApplyTimePenalty(const UObject* WorldContextObject, float Seconds);
 };

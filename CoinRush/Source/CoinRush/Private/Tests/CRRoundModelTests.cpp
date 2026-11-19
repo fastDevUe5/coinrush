@@ -136,4 +136,22 @@ bool FCRRoundModelBonusTimeTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCRRoundModelPenaltyTest, "CoinRush.RoundModel.TimePenalty",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCRRoundModelPenaltyTest::RunTest(const FString& Parameters)
+{
+	FCRRoundModel Round;
+	Round.Reset(10.f);
+
+	Round.AddTime(-3.f);
+	TestEqual(TEXT("penalty applied"), Round.TimeLeft, 7.f);
+
+	Round.AddTime(-30.f);
+	TestEqual(TEXT("penalty clamps at zero"), Round.TimeLeft, 0.f);
+	TestFalse(TEXT("penalty alone does not finish the round"), Round.bFinished);
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

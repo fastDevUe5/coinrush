@@ -177,3 +177,19 @@ void ACRGameMode::AddBonusTime(float Seconds)
 	Round.AddTime(Seconds);
 	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Bonus time +%.1fs (time left %.1fs)"), Seconds, Round.TimeLeft);
 }
+
+void ACRGameMode::ApplyTimePenalty(float Seconds)
+{
+	if (Round.bFinished || Seconds <= 0.f)
+	{
+		return;
+	}
+
+	Round.AddTime(-Seconds);
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Time penalty -%.1fs (time left %.1fs)"), Seconds, Round.TimeLeft);
+
+	if (Round.TimeLeft <= 0.f)
+	{
+		FinishRound(false);
+	}
+}

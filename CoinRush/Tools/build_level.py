@@ -116,6 +116,7 @@ def make_materials():
         "coin": make_material("M_Coin", (1.000, 0.480, 0.060), emissive_strength=2.6),
         "character": make_material("M_Character", (0.020, 0.360, 0.430), roughness=0.45, metallic=0.05),
         "accent": make_material("M_Accent", (0.400, 0.950, 1.000), emissive_strength=1.1),
+        "hazard": make_material("M_Hazard", (1.000, 0.120, 0.080), emissive_strength=2.0),
     }
 
 
@@ -255,6 +256,8 @@ def build_blueprint_props():
         ("/Game/Blueprints/BP_Turret", (300.0, -1000.0, 80.0), (4.0, 0.5, 0.5)),
         # Blueprint pickup: grants +5s through the C++ helper UCRGameplayStatics::AddBonusTime
         ("/Game/Blueprints/BP_TimeOrb", (700.0, -1500.0, 140.0), (1.0, 1.0, 1.0)),
+        # Blueprint hazard: costs 3s through UCRGameplayStatics::ApplyTimePenalty
+        ("/Game/Blueprints/BP_Hazard", (350.0, -1500.0, 140.0), (1.0, 1.0, 1.0)),
     )
 
     for asset_path, location, scale in props:
@@ -295,7 +298,7 @@ def configure_blueprint_prop(actor, asset_path):
     except Exception as exc:
         log("mobility setup failed on %s: %s" % (asset_path, exc))
 
-    if asset_path.endswith("BP_TimeOrb"):
+    if asset_path.endswith(("BP_TimeOrb", "BP_Hazard")):
         try:
             component.set_collision_profile_name("OverlapAllDynamic")
         except Exception as exc:

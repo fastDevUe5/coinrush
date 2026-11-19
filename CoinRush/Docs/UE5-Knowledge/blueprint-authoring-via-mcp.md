@@ -96,21 +96,22 @@ component.set_editor_property("generate_overlap_events", True)     # 注意：�
 
 `set_properties` 改 `BodyInstance.CollisionProfileName` 同样不生效——碰撞必须在实例上用函数调用设置。
 
-## 实例级拾取实测（BP_TimeOrb）
+## 实例级拾取/惩罚实测（BP_TimeOrb / BP_Hazard）
 
 ```
-事件 ActorBeginOverlap
-  → CoinRush|AddBonusTime (Seconds = 5.0)
-  → Actor|DestroyActor
+BP_TimeOrb:   事件 ActorBeginOverlap → CoinRush|AddBonusTime (5.0)    → Actor|DestroyActor
+BP_Hazard:    事件 ActorBeginOverlap → CoinRush|ApplyTimePenalty (3.0)
 ```
 
 运行日志：
 
 ```
 [CoinRush] Bonus time +5.0s (time left 50.0s)
+[CoinRush] Time penalty -3.0s (time left 45.0s)
 ```
 
-HUD 倒计时从 44 变 49、球消失——蓝图确实参与了玩法。
+倒计时 44→49（加时球消失）、44（踩陷阱扣 3 秒）——蓝图确实参与了玩法。
+陷阱不销毁自己，靠 `ActorBeginOverlap` 只在**进入**时触发一次；要持续伤害得改成 Tick 里判距离。
 
 ## 什么时候值得用
 
