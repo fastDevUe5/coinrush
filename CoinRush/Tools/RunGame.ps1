@@ -167,8 +167,15 @@ if ([string]::IsNullOrWhiteSpace($ExePath)) {
     $proc = Start-Process -FilePath $Exe -ArgumentList $gameArgs -PassThru -WindowStyle Normal -RedirectStandardOutput $gameLog -RedirectStandardError "$gameLog.err"
 }
 else {
-    # Redirecting a packaged game's stdout can block the wrapper on exit; keep it simple.
-    $proc = Start-Process -FilePath $Exe -ArgumentList $gameArgs -PassThru -WindowStyle Normal
+    # Packaged builds are unsigned: starting them through the shell pops the
+    # "Open File - Security Warning" dialog and blocks automation. Use CreateProcess
+    # directly instead of ShellExecute.
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $Exe
+    $psi.Arguments = ($gameArgs -join ' ')
+    $psi.WorkingDirectory = Split-Path -Parent $Exe
+    $psi.UseShellExecute = $false
+    $proc = [System.Diagnostics.Process]::Start($psi)
 }
 
 Write-Host "game process started: $($proc.Id), waiting $Seconds s ..."

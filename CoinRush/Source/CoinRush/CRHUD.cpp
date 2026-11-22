@@ -137,15 +137,27 @@ void ACRHUD::DrawHUD()
 
 	const FString RecordLine = FString::Printf(TEXT("BEST   %d / %d COINS      BEST STREAK   x%d"),
 		GameMode->GetRecordScore(), GameMode->GetTotalCoins(), GameMode->GetRecordStreak());
-	DrawLabelCentered(RecordLine, ViewW * 0.5f, ViewH * 0.5f + 40.f * UIScale, SmallFont,
+	DrawLabelCentered(RecordLine, ViewW * 0.5f, ViewH * 0.5f + 35.f * UIScale, SmallFont,
 		FLinearColor(0.72f, 0.78f, 0.88f, 1.f), 1.0f * UIScale);
+
+	if (!GameMode->WasRecordSaved())
+	{
+		DrawLabelCentered(TEXT("SAVE FAILED"), ViewW * 0.5f, ViewH * 0.5f + 62.f * UIScale, SmallFont,
+			FLinearColor(0.95f, 0.45f, 0.35f, 1.f), 0.9f * UIScale);
+
+		if (!GameMode->GetSaveDiag().IsEmpty())
+		{
+			DrawLabelCentered(GameMode->GetSaveDiag(), ViewW * 0.5f, ViewH * 0.5f + 78.f * UIScale, SmallFont,
+				FLinearColor(0.62f, 0.68f, 0.78f, 1.f), 0.72f * UIScale);
+		}
+	}
 
 	if (GameMode->HasNewRecord())
 	{
-		DrawLabelCentered(TEXT("NEW RECORD!"), ViewW * 0.5f, ViewH * 0.5f + 84.f * UIScale, LargeFont, Gold, 1.3f * UIScale);
+		DrawLabelCentered(TEXT("NEW RECORD!"), ViewW * 0.5f, ViewH * 0.5f + 100.f * UIScale, LargeFont, Gold, 1.3f * UIScale);
 	}
 
-	DrawLabelCentered(TEXT("PRESS ENTER TO PLAY AGAIN     ESC TO QUIT"), ViewW * 0.5f, ViewH * 0.5f + 90.f * UIScale, SmallFont,
+	DrawLabelCentered(TEXT("PRESS ENTER TO PLAY AGAIN     ESC TO QUIT"), ViewW * 0.5f, ViewH * 0.5f + 150.f * UIScale, SmallFont,
 		FLinearColor(0.7f, 0.76f, 0.85f, 1.f), 1.0f * UIScale);
 }
 

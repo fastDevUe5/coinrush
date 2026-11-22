@@ -81,6 +81,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CoinRush")
 	bool HasNewRecord() const { return bNewRecord; }
 
+	/** True when the last SaveGameToSlot call reported success (diagnostics for packaged builds). */
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	bool WasRecordSaved() const { return bRecordSaved; }
+
+	/** Directory the record is written to (shown on the end screen for packaged-build debugging). */
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	FString GetSaveDirectory() const;
+
+	/** One-line diagnostic of the last save attempt (empty before the first round ends). */
+	UFUNCTION(BlueprintPure, Category = "CoinRush")
+	FString GetSaveDiag() const { return SaveDiag; }
+
 protected:
 	void SpawnCoins();
 	void TickSecond();
@@ -107,6 +119,12 @@ private:
 
 	/** Set when the round that just ended improved the record. */
 	bool bNewRecord = false;
+
+	/** Result of the last SaveGameToSlot call. */
+	bool bRecordSaved = false;
+
+	/** Text shown on the end screen when a save fails. */
+	FString SaveDiag;
 
 	UPROPERTY()
 	TObjectPtr<UCRSaveGame> SaveGame;

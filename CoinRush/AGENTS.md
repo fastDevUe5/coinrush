@@ -65,6 +65,9 @@ powershell -ExecutionPolicy Bypass -File Tools\GenerateAudio.ps1
 # 重新生成应用图标与启动画面（改 Tools\GenerateBranding.ps1 后跑，然后重打包）
 powershell -ExecutionPolicy Bypass -File Tools\GenerateBranding.ps1
 
+# 打包后自动验证（启动 → 模拟按键 → 截图 → 等回合结束 → 检查存档）
+powershell -ExecutionPolicy Bypass -File Tools\VerifyPackage.ps1
+
 # 打印关卡里所有 actor（确认生成结果）
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
   "CoinRush.uproject" -run=pythonscript -script="Tools\inspect_level.py" -unattended -nosplash -nop4 -stdout

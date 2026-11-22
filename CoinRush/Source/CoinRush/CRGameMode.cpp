@@ -5,8 +5,11 @@
 #include "CRHUD.h"
 #include "CRSaveGame.h"
 #include "Engine/World.h"
+#include "HAL/FileManager.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
 
@@ -145,6 +148,12 @@ void ACRGameMode::FinishRound(bool bInWin)
 	{
 		SaveRecord();
 	}
+	else
+	{
+		// Nothing to write, but the stored record is still intact.
+		bRecordSaved = true;
+		SaveDiag.Empty();
+	}
 
 	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Round over. Win=%d Score=%d/%d Record=%d NewRecord=%d"),
 		bInWin ? 1 : 0, Round.Score, Round.TotalCoins, Record.BestScore, bNewRecord ? 1 : 0);
@@ -161,6 +170,18 @@ void ACRGameMode::LoadRecord()
 	if (UGameplayStatics::DoesSaveGameExist(SaveSlot, 0))
 	{
 		SaveGame = Cast<UCRSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlot, 0));
+	}
+
+	// Packaged builds may be denied %LOCALAPPDATA%; LoadRecord/SaveRecord then use the
+	// portable copy stored next to the game.
+	if (!SaveGame)
+	{
+		const FString PortablePath = FPaths::ProjectDir() / TEXT("Saved/SaveGames/") + FString(SaveSlot) + TEXT(".sav");
+		TArray<uint8> Data;
+		if (FFileHelper::LoadFileToArray(Data, *PortablePath) && Data.Num() > 0)
+		{
+			SaveGame = Cast<UCRSaveGame>(UGameplayStatics::LoadGameFromMemory(Data));
+		}
 	}
 
 	if (!SaveGame)
@@ -181,13 +202,54 @@ void ACRGameMode::SaveRecord()
 {
 	if (!SaveGame)
 	{
+		bRecordSaved = false;
+		SaveDiag = TEXT("no save object");
+		UE_LOG(LogTemp, Warning, TEXT("[CoinRush] Record save skipped: no save game object"));
 		return;
 	}
 
 	SaveGame->BestScore = Record.BestScore;
 	SaveGame->BestStreak = Record.BestStreak;
-	UGameplayStatics::SaveGameToSlot(SaveGame, SaveSlot, 0);
-	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Record saved: score=%d streak=%d"), Record.BestScore, Record.BestStreak);
+
+	// Do the two steps manually so a packaged build (no logs) can show where it failed.
+	TArray<uint8> Data;
+	const bool bSerialized = UGameplayStatics::SaveGameToMemory(SaveGame, Data);
+
+	// Packaged builds resolve ProjectSavedDir() to %LOCALAPPDATA%\<Project>\Saved, which some
+	// machines deny to unsigned binaries; fall back to <Package>\Saved so progress is never lost.
+	const FString Candidates[] =
+	{
+		GetSaveDirectory(),
+		FPaths::ProjectDir() / TEXT("Saved/SaveGames/"),
+	};
+
+	FString UsedDirectory;
+	bool bWritten = false;
+	uint32 LastError = 0;
+	for (const FString& Directory : Candidates)
+	{
+		IFileManager::Get().MakeDirectory(*Directory, true);
+		const FString Path = Directory + FString(SaveSlot) + TEXT(".sav");
+		if (bSerialized && Data.Num() > 0 && FFileHelper::SaveArrayToFile(Data, *Path))
+		{
+			bWritten = true;
+			UsedDirectory = Directory;
+			break;
+		}
+		LastError = FPlatformMisc::GetLastError();
+	}
+
+	bRecordSaved = bWritten;
+	SaveDiag = FString::Printf(TEXT("mem=%d bytes=%d write=%d err=%u dir=%s"),
+		bSerialized ? 1 : 0, Data.Num(), bWritten ? 1 : 0, bWritten ? 0u : LastError,
+		*(bWritten ? UsedDirectory : GetSaveDirectory()));
+	UE_LOG(LogTemp, Log, TEXT("[CoinRush] Record saved=%d: score=%d streak=%d %s"),
+		bRecordSaved ? 1 : 0, Record.BestScore, Record.BestStreak, *SaveDiag);
+}
+
+FString ACRGameMode::GetSaveDirectory() const
+{
+	return FPaths::ProjectSavedDir() / TEXT("SaveGames/");
 }
 
 void ACRGameMode::RestartRound()

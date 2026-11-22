@@ -175,9 +175,11 @@ powershell -ExecutionPolicy Bypass -File Tools\RunTests.ps1
 ## 最高纪录（已持久化）
 
 - `USaveGame`（`CRSaveGame.h`）只存两个字段：`BestScore`、`BestStreak`；
-- 存档槽 `CoinRushProfile`，文件在 `Saved/SaveGames/CoinRushProfile.sav`；
+- 存档槽 `CoinRushProfile`，写入位置：优先 `%LOCALAPPDATA%\CoinRush\Saved\SaveGames\`，
+  **写不进去时自动回退到包内 `Saved/SaveGames/`**（打包版实测会走回退，见 Gotchas #27）；
 - 回合结束时 `FCRScoreRecord::Submit()` 判断是否破纪录（纯逻辑、有测试），破了才写盘；
-- 结算页显示 `BEST n / 8 COINS` 与 `BEST STREAK xN`，破纪录时额外显示金色 `NEW RECORD!`。
+- 结算页显示 `BEST n / 8 COINS` 与 `BEST STREAK xN`，破纪录时额外显示金色 `NEW RECORD!`；
+  保存失败时才会显示红色 `SAVE FAILED` 与一行诊断。
 
 实测日志：
 

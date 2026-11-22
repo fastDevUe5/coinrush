@@ -237,3 +237,18 @@
 - **应急**：只做 cook/archive 时可用 `Tools\Package.ps1` 的第二步命令手动执行（`RunUAT.bat BuildCookRun ... -skipbuild`），
   但那会沿用**旧的** Shipping 二进制——本次验证就是这么发现的：包能跑，但结算页缺 `BEST` 行（exe 时间戳是 11/17）。
 - **出处**：2026-11-22 实测；CodeIntegrity 事件 3077 / `VerifiedAndReputablePolicyState=1`
+
+## 27. 打包版存档写不进去（Shipping 的 ProjectSavedDir 指向 %LOCALAPPDATA%）
+
+- **症状**：Shipping 包跑完一局，结算页显示 `SAVE FAILED`，包目录和 `%LOCALAPPDATA%` 下都没有 `.sav`；
+  同样的代码用 Development 包跑却能正常存档（存到包目录）。
+- **定位过程**：在 HUD 上临时打出 `ProjectSavedDir` 与写文件结果，得到
+  `mem=1 bytes=2009 write=0 err=5 C:/Users/tk/AppData/Local/CoinRush/Saved/SaveGames/CoinRushProfile.sav`，
+  `err=5 = ERROR_ACCESS_DENIED`；同时写包目录的探针返回 `project=1 err=0`。
+- **原因**：打包版 `FPaths::ProjectSavedDir()` = `%LOCALAPPDATA%\<Project>\Saved\`（走 `FPlatformMisc::UserDir()`），
+  这台机器上未签名的 Shipping 进程对该目录写文件被拒绝；Development 包解析到项目目录，所以没有暴露。
+- **正确**：存档先写 `ProjectSavedDir()`，失败则回退到 `FPaths::ProjectDir()/Saved/SaveGames/`（便携存档）；
+  读档时若标准槽不存在，就从这个便携路径 `LoadGameFromMemory`。HUD 只在“尝试过保存且失败”时提示。
+- **验证**：打包版跑两局——第一局 `COINS 1/8` 后包内出现 `Saved/SaveGames/CoinRushProfile.sav`，
+  第二局 0 分结算页显示 `BEST 1/8 COINS`，说明跨进程读档成功。
+- **出处**：2026-11-22 实测；`Tools/VerifyPackage.ps1` + `Saved/Screenshots/Pkg_LoadRun.png`
