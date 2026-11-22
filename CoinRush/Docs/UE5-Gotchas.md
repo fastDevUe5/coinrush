@@ -219,3 +219,21 @@
   （没有 `set_generate_overlap_events`）。属性 JSON 改 `BodyInstance.CollisionProfileName` 也不生效。
 - **验证**：改完后游戏日志不再出现该警告，倒计时 44→49、加时球消失。
 - **出处**：2026-11-19 实测；`Tools/build_level.py::configure_blueprint_prop`
+
+## 26. Smart App Control 拦截 UBT 动态编译的规则程序集（构建 exit 6）
+
+- **症状**：`Build.bat CoinRushEditor/CoinRush ...` 退出码 6，日志里：
+  `Could not load file or assembly '...\Intermediate\Build\BuildRules\CoinRushModuleRules.dll'. 应用程序控制策略已阻止此文件。 (0x800711C7)`
+  随后 `IOException: The process cannot access the file ... because it is being used by another process`。
+- **原因**：Windows 11 **Smart App Control 处于强制模式**（`HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState = 1`），
+  阻止 `dotnet.exe` 加载未签名/无信誉的托管程序集。事件日志 `Microsoft-Windows-CodeIntegrity/Operational` 事件 3077 指向同一文件。
+  这是**机器策略**，不是工程问题：Nov 19 还能构建（策略当时未生效/未拉取新判定），Nov 22 起被拦。
+- **影响**：任何 `dotnet` 驱动的 UBT 构建（Editor / Game 目标）都会失败；`-skipbuild` 的 cook/archive 仍然可用。
+- **可行解**：
+  1. 关闭 Smart App Control（Windows 安全中心 → 应用和浏览器控制 → 智能应用控制 → 关闭；**关闭后除非重装系统否则无法再打开**，属于用户决策）；
+  2. 在无 SAC 的机器或 CI 上构建，产物拷回；
+  3. 用受信任证书给程序集签名（需要企业环境，个人环境没有意义）。
+  另：管理员加 Defender 排除项**不能**绕过 SAC（实测普通权限直接拒绝）。
+- **应急**：只做 cook/archive 时可用 `Tools\Package.ps1` 的第二步命令手动执行（`RunUAT.bat BuildCookRun ... -skipbuild`），
+  但那会沿用**旧的** Shipping 二进制——本次验证就是这么发现的：包能跑，但结算页缺 `BEST` 行（exe 时间戳是 11/17）。
+- **出处**：2026-11-22 实测；CodeIntegrity 事件 3077 / `VerifiedAndReputablePolicyState=1`

@@ -11,6 +11,7 @@ param(
     [int]$SettleMs = 1200,
     [string]$ExecCmds = '',
     [string]$ExtraArgs = '',
+    [string]$ExePath = '',
     [switch]$Editor,
     [switch]$KeepRunning
 )
@@ -142,12 +143,19 @@ Get-Process UnrealEditor -ErrorAction SilentlyContinue | Where-Object { $_.MainW
 Start-Sleep -Milliseconds 400
 
 $gameLog = Join-Path $LogDir 'game.log'
-$gameArgs = @("`"$Project`"")
-if ($Editor) {
-    $gameArgs += @('-NoSplash', '-log')
+if (-not [string]::IsNullOrWhiteSpace($ExePath)) {
+    # Packaged build: the exe embeds its project, so no .uproject argument and no -game flag.
+    $Exe = $ExePath
+    $gameArgs = @('-windowed', '-resx=1280', '-resy=720', '-vsync=0', '-NoSplash')
 }
 else {
-    $gameArgs += @('-game', '-windowed', '-resx=1280', '-resy=720', '-vsync=0', '-NoSplash', '-NoTrace', '-log', '-FullStdOutLogOutput')
+    $gameArgs = @("`"$Project`"")
+    if ($Editor) {
+        $gameArgs += @('-NoSplash', '-log')
+    }
+    else {
+        $gameArgs += @('-game', '-windowed', '-resx=1280', '-resy=720', '-vsync=0', '-NoSplash', '-NoTrace', '-log', '-FullStdOutLogOutput')
+    }
 }
 if (-not [string]::IsNullOrWhiteSpace($ExecCmds)) {
     $gameArgs += "`"-ExecCmds=$ExecCmds`""
@@ -155,7 +163,13 @@ if (-not [string]::IsNullOrWhiteSpace($ExecCmds)) {
 if (-not [string]::IsNullOrWhiteSpace($ExtraArgs)) {
     $gameArgs += $ExtraArgs.Split(' ')
 }
-$proc = Start-Process -FilePath $Exe -ArgumentList $gameArgs -PassThru -WindowStyle Normal -RedirectStandardOutput $gameLog -RedirectStandardError "$gameLog.err"
+if ([string]::IsNullOrWhiteSpace($ExePath)) {
+    $proc = Start-Process -FilePath $Exe -ArgumentList $gameArgs -PassThru -WindowStyle Normal -RedirectStandardOutput $gameLog -RedirectStandardError "$gameLog.err"
+}
+else {
+    # Redirecting a packaged game's stdout can block the wrapper on exit; keep it simple.
+    $proc = Start-Process -FilePath $Exe -ArgumentList $gameArgs -PassThru -WindowStyle Normal
+}
 
 Write-Host "game process started: $($proc.Id), waiting $Seconds s ..."
 Start-Sleep -Seconds $Seconds
@@ -295,6 +309,7 @@ else {
 }
 
 Write-Host '== log (CoinRush / errors) =='
-if (Test-Path $gameLog) {
+# KeepRunning leaves the log file open by the child process; reading it then blocks.
+if (-not $KeepRunning -and (Test-Path $gameLog)) {
     Select-String -Path $gameLog -Pattern '\[CoinRush\]|Error:|Fatal|Warning: Failed' | Select-Object -Last 30 | ForEach-Object { $_.Line }
 }
